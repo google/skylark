@@ -5,7 +5,7 @@ endif
 syn case match
 
 syn keyword     skylarkStatement         return break continue lambda
-syn keyword     skylarkConditional       if else elif not
+syn keyword     skylarkConditional       if else elif not and or
 syn keyword     skylarkLabel             case default
 syn keyword     skylarkRepeat            for in range
 syn match       skylarkDeclaration       /\<def\>/
