@@ -1013,6 +1013,40 @@ func type_(thread *Thread, _ *Builtin, args Tuple, kwargs []Tuple) (Value, error
 	return String(args[0].Type()), nil
 }
 
+type zipIterable struct {
+	iters []Iterator
+}
+
+var _ Iterable = (*zipIterable)(nil)
+
+func (zi zipIterable) String() string        { return "zip object" }
+func (zi zipIterable) Type() string          { return "tuples" }
+func (zi zipIterable) Freeze()               {} // immutable
+func (zi zipIterable) Truth() Bool           { return True }
+func (zi zipIterable) Hash() (uint32, error) { return 0, fmt.Errorf("unhashable: %s", zi.Type()) }
+func (zi zipIterable) Iterate() Iterator     { return &zipIterator{zi} }
+
+type zipIterator struct {
+	zi zipIterable
+}
+
+func (it *zipIterator) Next(p *Value) bool {
+	tuple := make(Tuple, len(it.zi.iters))
+	for i, iter := range it.zi.iters {
+		if !iter.Next(&tuple[i]) {
+			return false
+		}
+	}
+	*p = tuple
+	return true
+}
+
+func (it *zipIterator) Done() {
+	for _, iter := range it.zi.iters {
+		iter.Done()
+	}
+}
+
 // See https://bazel.build/versions/master/docs/skylark/lib/globals.html#zip
 func zip(thread *Thread, _ *Builtin, args Tuple, kwargs []Tuple) (Value, error) {
 	if len(kwargs) > 0 {
@@ -1027,13 +1061,12 @@ func zip(thread *Thread, _ *Builtin, args Tuple, kwargs []Tuple) (Value, error) 
 		}
 		iters[i] = it
 		n := Len(seq)
-		if n < 0 {
-			// TODO(adonovan): support iterables of unknown length.
-			return nil, fmt.Errorf("zip: argument #%d has unknown length", i+1)
-		}
 		if i == 0 || n < rows {
 			rows = n
 		}
+	}
+	if rows < 0 {
+		return zipIterable{iters}, nil
 	}
 	result := make([]Value, rows)
 	array := make(Tuple, cols*rows) // allocate a single backing array
