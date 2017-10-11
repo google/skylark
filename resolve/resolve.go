@@ -94,7 +94,7 @@ var (
 // The isPredeclaredGlobal and isUniversal predicates report whether a
 // name is a pre-declared global identifier (in the current module) or a
 // universal identifier (in every module).
-// Typical values are globals.Has and Universe.has, respectively, where
+// Typical values are globals.Has and Universe.Has, respectively, where
 // globals is the current module's StringDict.
 func File(file *syntax.File, isPredeclaredGlobal, isUniversal func(name string) bool) error {
 	r := newResolver(isPredeclaredGlobal, isUniversal)
@@ -121,7 +121,7 @@ func File(file *syntax.File, isPredeclaredGlobal, isUniversal func(name string) 
 // The isPredeclaredGlobal and isUniversal predicates report whether a
 // name is a pre-declared global identifier (in the current module) or a
 // universal identifier (in every module).
-// Typical values are globals.Has and Universe.has, respectively, where
+// Typical values are globals.Has and Universe.Has, respectively, where
 // globals is the current module's StringDict.
 func Expr(expr syntax.Expr, isPredeclaredGlobal, isUniversal func(name string) bool) ([]*syntax.Ident, error) {
 	r := newResolver(isPredeclaredGlobal, isUniversal)
