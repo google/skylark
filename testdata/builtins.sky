@@ -104,6 +104,10 @@ assert.eq(zip(list("abc".split_bytes()),
               list("def".split_bytes()),
               list("hijk".split_bytes())),
           [("a", "d", "h"), ("b", "e", "i"), ("c", "f", "j")])
+assert.eq(list(zip("abc".split_bytes(),
+                   list("def".split_bytes()),
+                   "hijk".split_bytes())),
+          [("a", "d", "h"), ("b", "e", "i"), ("c", "f", "j")])
 
 # dir for builtins
 assert.eq(dir(None), [])
