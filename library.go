@@ -1793,8 +1793,7 @@ func string_split(fnname string, recv_ Value, args Tuple, kwargs []Tuple) (Value
 		} else if fnname == "split" {
 			res = splitspace(recv, maxsplit+1)
 		} else { // rsplit
-			// TODO(adonovan): implement.
-			return nil, fmt.Errorf("rsplit(None, %d): maxsplit > 0 not yet supported", maxsplit)
+			res = rsplit(recv, maxsplit)
 		}
 
 	} else if sep, ok := AsString(sep_); ok {
@@ -1825,6 +1824,49 @@ func string_split(fnname string, recv_ Value, args Tuple, kwargs []Tuple) (Value
 		list[i] = String(x)
 	}
 	return NewList(list), nil
+}
+
+func reverse(s string, size int) string {
+	rev := make([]rune, 0, size)
+
+	for _, point := range s {
+		rev = append(rev, point)
+	}
+
+	for i := 0; i < size/2; i++ {
+		rev[i], rev[size-1-i] = rev[size-1-i], rev[i]
+	}
+
+	return string(rev)
+}
+
+func rsplit(s string, max int) []string {
+	size := utf8.RuneCountInString(s)
+	splitCount := 0   // Our current number of splits made.
+	currIndex := size // A backward working index.
+	lastStop := size  // After we make a split, advance this back.
+	parts := make([]string, 0, max)
+
+	reversed := reverse(s, size)
+
+	for _, p := range reversed {
+		if splitCount == max {
+			break
+		}
+		if unicode.IsSpace(p) {
+			parts = append(parts, s[currIndex:lastStop])
+
+			splitCount++
+			lastStop = currIndex - 1
+		}
+		currIndex--
+	}
+
+	res := []string{s[0:lastStop]}
+	for i := len(parts) - 1; i >= 0; i-- {
+		res = append(res, parts[i])
+	}
+	return res
 }
 
 func splitspace(s string, max int) []string {
