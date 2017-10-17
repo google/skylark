@@ -1164,7 +1164,7 @@ func Binary(op syntax.Token, x, y Value) (Value, error) {
 			}
 			return Bool(strings.Contains(string(y), string(needle))), nil
 		case rangeValue:
-			i, err := ConvertToInt(x)
+			i, err := NumberToInt(x)
 			if err != nil {
 				return nil, fmt.Errorf("'in <range>' requires integer as left operand, not %s", x.Type())
 			}
@@ -1940,7 +1940,7 @@ func interpolate(format string, x Value) (Value, error) {
 				writeValue(&buf, arg, path)
 			}
 		case 'd', 'i', 'o', 'x', 'X':
-			i, err := ConvertToInt(arg)
+			i, err := NumberToInt(arg)
 			if err != nil {
 				return nil, fmt.Errorf("%%%c format requires integer: %v", c, err)
 			}

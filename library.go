@@ -668,7 +668,16 @@ func int_(thread *Thread, _ *Builtin, args Tuple, kwargs []Tuple) (Value, error)
 	if base != nil {
 		return nil, fmt.Errorf("int: can't convert non-string with explicit base")
 	}
-	i, err := ConvertToInt(x)
+
+	if b, ok := x.(Bool); ok {
+		if b {
+			return one, nil
+		} else {
+			return zero, nil
+		}
+	}
+
+	i, err := NumberToInt(x)
 	if err != nil {
 		return nil, fmt.Errorf("int: %s", err)
 	}

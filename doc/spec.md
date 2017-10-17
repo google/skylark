@@ -1967,7 +1967,7 @@ c       string          x (string must encode a single Unicode code point)
 ```
 
 It is an error if the argument does not have the type required by the
-conversion specifier.
+conversion specifier.  A Boolean operand is not considered a number.
 
 Examples:
 
@@ -3035,8 +3035,9 @@ Range values are not hashable.  <!-- should they be? -->
 The `str` function applied to a `range` value yields a string of the
 form `range(10)`, `range(1, 10)`, or `range(1, 10, 2)`.
 
-The `x in y` operator, where `y` is a range, reports whether the value
-`int(x)` is a member of the sequence `y`.
+The `x in y` operator, where `y` is a range, reports `x` is equal to
+some member of the sequence `y`; the operation fails unless `x` is a
+number.
 
 ### repr
 

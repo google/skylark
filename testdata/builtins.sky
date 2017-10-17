@@ -93,10 +93,10 @@ assert.eq(range(0, 3, 2), range(0, 4, 2)) # [0, 2]
 assert.ne(range(1, 10), range(2, 10))
 assert.fails(lambda: range(0) < range(0), "range < range not implemented")
 # <number> in <range>
-assert.contains(range(4), True) # acts like 1
-assert.contains(range(4), 2.0)  # acts like 2
-assert.contains(range(4), 3)
-assert.fails(lambda: "one" in range(10), "requires integer as left operand, not string")
+assert.contains(range(3), 1)
+assert.contains(range(3), 2.0)    # acts like 2
+assert.fails(lambda: True in range(3), "requires integer.*not bool") # bools aren't numbers
+assert.fails(lambda: "one" in range(10), "requires integer.*not string")
 assert.true(4 not in range(4))
 assert.true(1e15 not in range(4)) # too big for int32
 assert.true(1e100 not in range(4)) # too big for int64
