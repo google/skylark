@@ -916,6 +916,16 @@ func rangeEqual(x, y rangeValue) bool {
 		(x.len == 0 || x.start == y.start && x.step == y.step)
 }
 
+func (r rangeValue) contains(x Int) bool {
+	x32, err := AsInt32(x)
+	if err != nil {
+		return false // out of range
+	}
+	delta := x32 - r.start
+	quo, rem := delta/r.step, delta%r.step
+	return rem == 0 && 0 <= quo && quo < r.len
+}
+
 type rangeIterator struct {
 	r rangeValue
 	i int

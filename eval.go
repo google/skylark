@@ -1163,6 +1163,12 @@ func Binary(op syntax.Token, x, y Value) (Value, error) {
 				return nil, fmt.Errorf("'in <string>' requires string as left operand, not %s", x.Type())
 			}
 			return Bool(strings.Contains(string(y), string(needle))), nil
+		case rangeValue:
+			i, err := ConvertToInt(x)
+			if err != nil {
+				return nil, fmt.Errorf("'in <range>' requires integer as left operand, not %s", x.Type())
+			}
+			return Bool(y.contains(i)), nil
 		}
 
 	case syntax.PIPE:

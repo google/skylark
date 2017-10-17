@@ -3034,7 +3034,10 @@ Range values are not hashable.  <!-- should they be? -->
 
 The `str` function applied to a `range` value yields a string of the
 form `range(10)`, `range(1, 10)`, or `range(1, 10, 2)`.
- 
+
+The `x in y` operator, where `y` is a range, reports whether the value
+`int(x)` is a member of the sequence `y`.
+
 ### repr
 
 `repr(x)` formats its argument as a string.
