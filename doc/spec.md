@@ -1037,13 +1037,14 @@ over finite sequences, implies that Skylark programs are not Turing-complete.
 
 A built-in function is a function or method implemented in Go by the interpreter
 or the application into which the interpreter is embedded.
-A built-in function value used in a Boolean context is always considered true.
 
 The [type](#type) of a built-in function is `"builtin_function_or_method"`.
 <b>Implementation note:</b>
 The Java implementation of `type(x)` returns `"function"` for all
 functions, whether built in or defined in Skylark,
 even though applications distinguish these two types.
+
+A built-in function value used in a Boolean context is always considered true.
 
 Many built-in functions are defined in the "universe" block of the environment
 (see [Name Resolution](#name-resolution)), and are thus available to
