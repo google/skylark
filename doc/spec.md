@@ -1037,8 +1037,13 @@ over finite sequences, implies that Skylark programs are not Turing-complete.
 
 A built-in function is a function or method implemented in Go by the interpreter
 or the application into which the interpreter is embedded.
-The [type](#type) of a built-in function is `"builtin_function_or_method"`.
 A built-in function value used in a Boolean context is always considered true.
+
+The [type](#type) of a built-in function is `"builtin_function_or_method"`.
+<b>Implementation note:</b>
+The Java implementation of `type(x)` returns `"function"` for all
+functions, whether built in or defined in Skylark,
+even though applications distinguish these two types.
 
 Many built-in functions are defined in the "universe" block of the environment
 (see [Name Resolution](#name-resolution)), and are thus available to
@@ -3915,3 +3920,4 @@ eventually to eliminate all such differences on a case-by-case basis.
 * `hash` accepts operands besides strings.
 * `sorted` accepts the additional parameters `cmp`, `key`, and `reversed`.
 * The `dict` type has a `clear` method.
+* `type(x)` returns `"builtin_function_or_method"` for built-in functions.
