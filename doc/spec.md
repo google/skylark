@@ -297,7 +297,7 @@ has string, integer, and floating-point literals.
 0                               # int
 123                             # decimal int
 0x7f                            # hexadecimal int
-0755                            # octal int
+0o755                           # octal int
 
 0.0     0.       .0             # float
 1e10    1e+10    1e-10
@@ -313,7 +313,7 @@ Integer and floating-point literal tokens are defined by the following grammar:
 ```grammar {.good}
 int         = decimal_lit | octal_lit | hex_lit .
 decimal_lit = ('1' … '9') {decimal_digit} .
-octal_lit   = '0' {octal_digit} .
+octal_lit   = '0' ('o'|'O') octal_digit {octal_digit} .
 hex_lit     = '0' ('x'|'X') hex_digit {hex_digit} .
 
 float     = decimals '.' [decimals] [exponent]
@@ -364,7 +364,10 @@ every value has a type string that can be obtained with the expression
 expression `str(x)`, or to a Boolean truth value using the expression
 `bool(x)`.  Other operations apply only to certain types.  For
 example, the indexing operation `a[i]` works only with strings, lists,
-and tuples, and any application-defined types that are _indexable_.
+and tuples, dictionaries, and any application-defined types that are
+_indexable_.
+<!-- Is there another word for "indexable" that applies equally well to both
+sequences and associative mappings? "Subscriptable"? -->
 The [_value concepts_](#value-concepts) section explains the groupings of
 types by the operators they support.
 
@@ -418,14 +421,13 @@ The `*` operator performs multiplication.
 The `//` and `%` operations on integers compute floored division and
 remainder of floored division, respectively.
 If the signs of the operands differ, the sign of the remainder `x % y`
-matches that of the dividend, `x`.
+matches that of the divisor, `y`.
 For all finite x and y (y ≠ 0), `(x // y) * y + (x % y) == x`.
 The `/` operator implements real division, and
 yields a `float` result even when its operands are both of type `int`.
 
 Integers, including negative values, may be interpreted as bit vectors.
 The `|` and `&` operators implement bitwise OR and AND, respectively.
-(This feature is not part of the Java implementation.)
 
 Any bool, number, or string may be interpreted as an integer by using
 the `int` built-in function.
@@ -449,6 +451,9 @@ of protocol messages which may contain signed and unsigned 64-bit
 integers.
 The Java implementation currently supports only signed 32-bit integers.
 
+<b>Implementation note:</b>
+Bitwise OR and AND operators are not part of the Java implementation.
+
 
 ### Floating-point numbers
 
@@ -457,7 +462,8 @@ double-precision floating-point number.  Its [type](#type) is `"float"`.
 
 Arithmetic on floats using the `+`, `-`, `*`, `/`, `//`, and `%`
  operators follows the IEE 754 standard.
-However, computing the division or remainder of division by zero is a dynamic error.
+However, computing the division or remainder of division by zero is a dynamic
+error.
 
 An arithmetic operation applied to a mixture of `float` and `int`
 operands works as if the `int` operand is first converted to a
@@ -518,8 +524,9 @@ The built-in `len` function returns the number of bytes in a string.
 Strings may be concatenated with the `+` operator.
 
 The substring expression `s[i:j]` returns the substring of `s` from
-index `i` up to index `j`.  The index expression `s[i]` returns the
-1-byte substring `s[i:i+1]`.
+index `i` up to but not including index `j`.  The index expression `s[i]`
+returns the 1-byte substring `s[i:i+1]`. See [Slice expressions
+](#slice-expressions) for more on how substring bounds are interpreted.
 
 Strings are hashable, and thus may be used as keys in a dictionary.
 
@@ -535,7 +542,7 @@ values, 1-byte substrings, numeric Unicode code points, or 1-code
 point substrings, you must explicitly call one of its four methods:
 `bytes`, `split_bytes`, `codepoints`, or `split_codepoints`.
 
-Any value may formatted as a string using the `str` or `repr` built-in
+Any value may be formatted as a string using the `str` or `repr` built-in
 functions, the `str % tuple` operator, or the `str.format` method.
 
 A string used in a Boolean context is considered true if it is
@@ -616,7 +623,7 @@ the elements at indices from i to j.
 
 List elements may be added using the `append` or `extend` methods,
 removed using the `remove` method, or reordered by assignments such as
-`list[i] = list[j]`.
+`list[i] = list[j]`. (Unlike in Python, slice assignment is not supported.)
 
 The concatenation operation `x + y` yields a new list containing all
 the elements of the two lists x and y.
@@ -766,10 +773,14 @@ words = ["able", "baker", "charlie"]
 
 Dictionaries are iterable sequences, so they may be used as the
 operand of a `for`-loop, a list comprehension, or various built-in
-functions.
-Iteration yields the dictionary's keys in the order in which they were
-inserted; updating the value associated with an existing key does not
-affect the iteration order.
+functions. Iteration yields the dictionary's keys; the order is deterministic
+but otherwise unspecified.
+
+<!-- Previous wording: "Iteration yields the dictionary's keys in the order in
+which they were inserted; updating the value associated with an existing key
+does not affect the iteration order." This is the behavior of the
+implementation(s) but we haven't committed to specifying this in the language.
+-->
 
 ```python
 x = dict([("a", 1), ("b", 2)])          # {"a": 1, "b": 2}
@@ -827,13 +838,12 @@ Two sets compare equal if they contain the same elements.
 
 Sets are iterable sequences, so they may be used as the operand of a
 `for`-loop, a list comprehension, or various built-in functions.
-Iteration yields the set's elements in the order in which they were
-inserted.
+Iteration yields the set's elements, in a deterministic but unspecified order.
+
+<!-- Old wording: "the order in which they were inserted."; see above. -->
 
 The binary `|` and `&` operators compute union and intersection when
-applied to sets.  The right operand of the `|` operator may be any
-iterable value.  The binary `in` operator performs a set membership
-test when its right operand is a set.
+applied to sets.
 
 Sets are instantiated by calling the built-in `set` function, which
 returns a set containing all the elements of its optional argument,
@@ -858,7 +868,11 @@ A function value used in a Boolean context is always considered true.
 Functions defined by a [`def` statement](#function-definitions) are named;
 functions defined by a [`lambda` expression](#lambda-expressions) are anonymous.
 
-Function definitions may be nested, and an inner function may refer to a local variable of an outer function.
+Function definitions may be nested, and an inner function may refer to a local
+variable of an outer function.
+
+<b>Implementation note:</b>
+The Java implementation does not allow lambdas or nested function definitions.
 
 A function definition defines zero or more named parameters.
 Skylark has a rich mechanism for passing arguments to functions.
@@ -881,9 +895,9 @@ idiv(6, 3)		# 2
 ```
 
 A call may provide arguments to function parameters either by
-position, as in the example above, or by name, as in first two calls
-below, or by a mixture of the two forms, as in the third call below.
-All the positional arguments must precede all the named arguments.
+position, as in the example above, or by name (also called "keyword"), as in
+the first two calls below, or by a mixture of the two forms, as in the third
+call below. All the positional arguments must precede all the named arguments.
 Named arguments may improve clarity, especially in functions of
 several parameters.
 
@@ -912,12 +926,13 @@ f(1, 2)	# (1, 2)
 f(1)	# (1, 3)
 ```
 
-If a function parameter's default value is a mutable expression,
-modifications to the value during one call may be observed by
-subsequent calls.
-Beware of this when using lists or dicts as default values.
-If the function becomes frozen, its parameters' default values become
-frozen too.
+If a function parameter's default value is mutable, modifications to the value
+during one call may be observed by subsequent calls. Beware of this when using
+lists or dicts as default values: If the function becomes frozen, its
+parameters' default values become frozen too. It is generally poor style for a
+function to mutate its own parameters' default values. Not only can it harm
+readability, but it is illegal when the function is used from outside its own
+module.
 
 ```python
 def f(x, list=[]):
@@ -934,10 +949,11 @@ f(3)                    # error: cannot append to frozen list
 <b>Variadic functions:</b> Some functions allow callers to provide an
 arbitrary number of arguments.
 After all required and optional parameters, a function definition may
-specify a _variadic arguments_ or _varargs_ parameter, indicated by a
-star preceding the parameter name: `*args`.
+specify a _varargs_ ("variadic arguments") parameter, indicated by a star
+preceding the parameter name: `*args`.
 Any surplus positional arguments provided by the caller are formed
-into a tuple and assigned to the `args` parameter.
+into a tuple and assigned to the `args` parameter. (If there are no surplus
+positional arguments, the empty tuple is assigned to `args`.)
 
 ```python
 def f(x, y, *args):
@@ -949,9 +965,8 @@ f(1, 2, 3, 4)           # (1, 2, (3, 4))
 
 <b>Keyword-variadic functions:</b> Some functions allow callers to
 provide an arbitrary sequence of `name=value` keyword arguments.
-A function definition may include a final _keyworded arguments_ or
-_kwargs_ parameter, indicated by a double-star preceding the parameter
-name: `**kwargs`.
+A function definition may include a final _kwargs_ ("keyword arguments")
+parameter, indicated by a double-star preceding the parameter name: `**kwargs`.
 Any surplus named arguments that do not correspond to named parameters
 are collected in a new dictionary and assigned to the `kwargs` parameter:
 
@@ -964,25 +979,40 @@ f(x=2, y=1)             # (2, 1, {})
 f(x=2, y=1, z=3)        # (2, 1, {"z": 3})
 ```
 
-It is a static error if any two parameters of a function have the same name.
+It is a static error if any two parameters of a function definition have the
+same name.
 
-Just as a function definition may accept an arbitrary number of
-positional or keyworded arguments, a function call may provide an
-arbitrary number of positional or keyworded arguments supplied by a
-list or dictionary:
+Just as a function definition may accept an arbitrary number of positional or
+keyword arguments, a function call may provide an arbitrary number of positional
+or keyword arguments. Positional arguments are given by a star-prefixed
+expression that evaluates to a sequence; it must appear after all other
+positional arguments. Keyword arguments are given by a double-star-prefixed
+expression that evaluates to a mapping; it can only appear as the very last
+argument.
 
 ```python
 def f(a, b, c=5):
   return a * b + c
 
-f(*[2, 3])              # 11
-f(*[2, 3, 7])           # 13
+nums = [2, 3]
+f(*nums)                # 11
+f(2, *[3, 7])           # 13
 f(*[2])                 # error: f takes at least 2 arguments (1 given)
 
-f(**dict(b=3, a=2))             # 11
-f(**dict(c=7, a=2, b=3))        # 13
-f(**dict(a=2))                  # error: f takes at least 2 arguments (1 given)
-f(**dict(d=4))                  # error: f got unexpected keyword argument "d"
+nums = {"b": 3, "a": 2}
+f(**nums)                     # 11
+f(c=7, **{"a": 2, "b": 3})    # 13
+f(**{"a": 2})                 # error: f takes at least 2 arguments (1 given)
+f(**{"d": 4})                 # error: f got unexpected keyword argument "d"
+```
+
+Positional arguments are bound to parameters before keyword arguments are
+considered. It is a dynamic error if the same argument is specified within a
+call in more than one way.
+
+```python
+f(1, 2, b=2)                  # error: b given both positionally and as keyword
+f(1, b=2, *[2, 3], {"c": 3})  # error: b and c are both given twice
 ```
 
 Once the parameters have been successfully bound to the arguments
@@ -1009,8 +1039,8 @@ f(-1)           # returns 1 without printing
 ```
 
 
-It is a dynamic error for a function to call itself or another
-function value with the same declaration.
+It is a dynamic error for a function to call itself either directly or
+indirectly.
 
 ```python
 def fib(x):
@@ -1035,14 +1065,13 @@ over finite sequences, implies that Skylark programs are not Turing-complete.
 
 ### Built-ins
 
-A Built-in is a function or method implemented in Go by the interpreter
-or the application into which the interpreter is embedded.
+A built-in is a function or method implemented by the interpreter or by the
+application into which the interpreter is embedded.
 The [type](#type) of a built-in is `"builtin"`.
 A builtin value used in a Boolean context is always considered true.
 
 Many built-ins are defined in the "universe" block of the environment
-(see [Name Resolution](#name-resolution)), and are thus available to
-all Skylark programs.
+(see [Name Resolution](#name-resolution)), and are thus available by default.
 
 Except where noted, built-ins accept only positional arguments.
 The parameter names serve merely as documentation.
@@ -1223,7 +1252,7 @@ The [dot expression](#dot-expressions) `.split` is a dynamic operation
 on the value returned by `get_filename()`.
 
 
-## Value concepts {#value-concepts}
+## Value concepts (#value-concepts)
 
 Skylark has eleven core [data types](#data-types).  An application
 that embeds the Skylark intepreter may define additional types that
@@ -1231,7 +1260,8 @@ behave like Skylark values.  All values, whether core or
 application-defined, implement a few basic behaviors:
 
 ```text
-str(x)		-- return a string representation of x
+str(x)		-- return a string description of x
+repr(x)		-- return a string representation of x
 type(x)		-- return a string describing the type of x
 freeze(x)	-- make x, and everything it transitively refers to, immutable
 bool(x)		-- convert x to a Boolean truth value
@@ -1250,20 +1280,19 @@ Values of some data types, such as `NoneType`, `bool`, `int`, `float`, and
 `string`, are _immutable_; they can never change.
 Immutable values have no notion of _identity_: it is impossible for a
 Skylark program to tell whether two integers, for instance, are
-represented by the same object; it can tell only whether they are
+represented by the same object in memory; it can tell only whether they are
 equal.
 
 Values of other data types, such as `list`, `dict`, and `set`, are
 _mutable_: they may be modified by a statement such as `a[i] = 0` or
 `items.clear()`.  Although `tuple` and `function` values are not
 directly mutable, they may refer to mutable values indirectly, so for
-this reason we consider them mutable too.  Skylark values of these
-types are actually _references_ to variables.
+this reason we consider them mutable too.
 
-Copying a reference to a variable, using an assignment statement for
-instance, creates an _alias_ for the variable, and the effects of
-operations applied to the variable through one alias are visible
-through all others.
+Skylark values are held in variables and in other values via _references_.
+For instance, when the assignment statement binds a variable to a value, it
+creates an _alias_ for the value. The effects of operations applied to the
+value through one alias are visible through all others.
 
 ```python
 x = []                          # x refers to a new empty list variable
@@ -1524,7 +1553,7 @@ Primary = int | float | string
 
 Evaluation of a literal yields a value of the given type (string, int,
 or float) with the given value.
-See [Literals](#lexical elements) for details.
+See [Literals](#lexical-elements) for details.
 
 ### Parenthesized expressions
 
@@ -2976,6 +3005,9 @@ See also: `chr`.
 Arguments are formatted as if by `str(x)` and separated with a space.
 Keyword arguments are preceded by their name.
 
+<!-- TODO: print behavior will have special debug info instead of str(),
+describe -->
+
 Example:
 
 ```python
@@ -3032,7 +3064,12 @@ number.
 
 `repr(x)` formats its argument as a string.
 
-All strings in the result are double-quoted.
+The exact result is implementation-dependent. By convention, application-defined
+types should choose a repr format that, if executed as a source code expression,
+can reproduce the given value. If that is not possible, the repr result should
+ideally be enclosed in angled brackets.
+
+<!-- See str() for reasons why it's currently unspecified -->
 
 ```python
 repr(1)                 # '1'
@@ -3089,10 +3126,24 @@ The Java implementation does not support the `key`, and `reversed` parameters.
 
 ### str
 
-`str(x)` formats its argument as a string.
+`str(x)` formats its argument as a human-readable string.
 
-If x is a string, the result is x (without quotation).
-All other strings, such as elements of a list of strings, are double-quoted.
+The exact result is implementation-dependent.
+
+<!-- We could specify the representations for:
+
+- the basic types None, bool, and int (but not float!)
+
+- the container types list, tuple, dict, and set, in terms of the repr()s of
+  their elements
+
+- For function, we'd need to determine whether/how to make it unique between
+  modules.
+
+- For string, the Java implementation uses double quoting everywhere, but Python
+  is clever and single-quotes nested strings to avoid unnecessary backslash
+  escapes. We should keep the flexibility to do that in the future.
+-->
 
 ```python
 str(1)                          # '1'
@@ -3906,7 +3957,7 @@ eventually to eliminate all such differences on a case-by-case basis.
 * The `set` built-in is provided (option: `-set`).
 * `x += y` rebindings are permitted at top level.
 * `assert` is a valid identifier.
-* `&` is a token; `int & int` and `set & set` are supported.
+* `&` is a token; `int & int` is supported.
 * `int | int` is supported.
 * The `freeze` built-in is provided (option: `-freeze`).
 * The parser accepts unary `+` expressions.
@@ -3914,4 +3965,5 @@ eventually to eliminate all such differences on a case-by-case basis.
 * Dot expressions may appear on the left side of an assignment: `x.f = 1`.
 * `hash` accepts operands besides strings.
 * `sorted` accepts the additional parameters `cmp`, `key`, and `reversed`.
+* The `cmp` builtin exists.
 * The `dict` type has a `clear` method.
