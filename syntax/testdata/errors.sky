@@ -151,8 +151,8 @@ def load(): ### `not an identifier`
 def f(load): ### `not an identifier`
   pass
 ---
-# A load statement does not allow a trailing comma.
-load("module", "x",) ### `trailing comma in load statement`
+# A load statement allows a trailing comma.
+load("module", "x",)
 ---
 x = 1 +
 2 ### "got newline, want primary expression"

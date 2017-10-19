@@ -2649,7 +2649,7 @@ Skylark because they don't allow arbitrary file names for module names.
 Syntactically, a load statement looks like a function call `load(...)`.
 
 ```grammar {.good}
-LoadStmt = 'load' '(' string {',' [identifier '='] string} ')'
+LoadStmt = 'load' '(' string {',' [identifier '='] string} [','] ')'
 ```
 
 A load statement requires at least two "arguments".

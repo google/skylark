@@ -253,7 +253,7 @@ func (p *parser) parseSmallStmt() Stmt {
 	return &ExprStmt{X: x}
 }
 
-// stmt = LOAD '(' STRING {',' (IDENT '=')? STRING} ')'
+// stmt = LOAD '(' STRING {',' (IDENT '=')? STRING} [','] ')'
 func (p *parser) parseLoadStmt() *LoadStmt {
 	loadPos := p.nextToken() // consume LOAD
 	lparen := p.consume(LPAREN)
@@ -266,6 +266,9 @@ func (p *parser) parseLoadStmt() *LoadStmt {
 	var from, to []*Ident
 	for p.tok != RPAREN && p.tok != EOF {
 		p.consume(COMMA)
+		if p.tok == RPAREN {
+			break // allow trailing comma
+		}
 		switch p.tok {
 		case STRING:
 			// load("module", "id")

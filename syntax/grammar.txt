@@ -35,7 +35,7 @@ PassStmt     = 'pass' .
 AssignStmt   = Expression ('=' | '+=' | '-=' | '*=' | '/=' | '//=' | '%=') Expression .
 ExprStmt     = Expression .
 
-LoadStmt = 'load' '(' string {',' [identifier '='] string} ')'
+LoadStmt = 'load' '(' string {',' [identifier '='] string} [','] ')'
 
 Test = LambdaExpr
      | IfExpr
