@@ -1826,9 +1826,13 @@ func string_split(fnname string, recv_ Value, args Tuple, kwargs []Tuple) (Value
 	return NewList(list), nil
 }
 
-func reverse(s string, size int) string {
-	rev := make([]rune, 0, size)
+func rsplit(s string, max int) []string {
+	size := utf8.RuneCountInString(s)
+	splitCount := 0  // Our current number of splits made.
+	lastStop := size // After we make a split, advance this back.
+	parts := make([]string, 0)
 
+	rev := make([]rune, 0, size)
 	for _, point := range s {
 		rev = append(rev, point)
 	}
@@ -1837,36 +1841,27 @@ func reverse(s string, size int) string {
 		rev[i], rev[size-1-i] = rev[size-1-i], rev[i]
 	}
 
-	return string(rev)
-}
-
-func rsplit(s string, max int) []string {
-	size := utf8.RuneCountInString(s)
-	splitCount := 0   // Our current number of splits made.
-	currIndex := size // A backward working index.
-	lastStop := size  // After we make a split, advance this back.
-	parts := make([]string, 0, max)
-
-	reversed := reverse(s, size)
-
-	for _, p := range reversed {
+	i := size
+	for _, p := range rev {
 		if splitCount == max {
 			break
 		}
 		if unicode.IsSpace(p) {
-			parts = append(parts, s[currIndex:lastStop])
+			parts = append(parts, s[i:lastStop])
 
 			splitCount++
-			lastStop = currIndex - 1
+			lastStop = i - 1
 		}
-		currIndex--
+		i--
 	}
 
-	res := []string{s[0:lastStop]}
-	for i := len(parts) - 1; i >= 0; i-- {
-		res = append(res, parts[i])
+	parts = append(parts, s[0:lastStop])
+	partsLen := len(parts)
+	for i := 0; i < partsLen/2; i++ {
+		parts[i], parts[partsLen-1-i] = parts[partsLen-1-i], parts[i]
 	}
-	return res
+
+	return parts
 }
 
 func splitspace(s string, max int) []string {
