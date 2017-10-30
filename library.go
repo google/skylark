@@ -1837,16 +1837,12 @@ func rsplit(s string, max int) []string {
 		rev = append(rev, point)
 	}
 
-	for i := 0; i < size/2; i++ {
-		rev[i], rev[size-1-i] = rev[size-1-i], rev[i]
-	}
-
 	i := size
-	for _, p := range rev {
+	for p := len(rev) - 1; p >= 0; p-- {
 		if splitCount == max {
 			break
 		}
-		if unicode.IsSpace(p) {
+		if unicode.IsSpace(rev[p]) {
 			parts = append(parts, s[i:lastStop])
 
 			splitCount++
