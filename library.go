@@ -1834,7 +1834,7 @@ func rsplitspace(s string, max int) []string {
 		if unicode.IsSpace(r) {
 			if end >= 0 {
 				if len(res) == max {
-					break // let this field run to the start
+					break // let this field run to the start.
 				}
 				res = append(res, s[i:end])
 				end = -1
