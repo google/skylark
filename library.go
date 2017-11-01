@@ -1791,7 +1791,7 @@ func string_split(fnname string, recv_ Value, args Tuple, kwargs []Tuple) (Value
 		} else if maxsplit < 0 {
 			res = strings.Fields(recv)
 		} else if fnname == "split" {
-			res = splitspace(recv, maxsplit+1)
+			res = splitspace(recv, maxsplit)
 		} else { // rsplit
 			res = rsplitspace(recv, maxsplit)
 		}
@@ -1826,6 +1826,7 @@ func string_split(fnname string, recv_ Value, args Tuple, kwargs []Tuple) (Value
 	return NewList(list), nil
 }
 
+// Precondition: max > 0.
 func rsplitspace(s string, max int) []string {
 	res := make([]string, 0, max+1)
 	end := -1 // index of field end, or -1 in a region of spaces.
@@ -1834,7 +1835,7 @@ func rsplitspace(s string, max int) []string {
 		if unicode.IsSpace(r) {
 			if end >= 0 {
 				if len(res) == max {
-					break // let this field run to the start.
+					break // let this field run to the start
 				}
 				res = append(res, s[i:end])
 				end = -1
@@ -1856,13 +1857,14 @@ func rsplitspace(s string, max int) []string {
 	return res
 }
 
+// Precondition: max > 0.
 func splitspace(s string, max int) []string {
 	var res []string
 	start := -1 // index of field start, or -1 in a region of spaces
 	for i, r := range s {
 		if unicode.IsSpace(r) {
 			if start >= 0 {
-				if len(res)+1 == max {
+				if len(res) == max {
 					break // let this field run to the end
 				}
 				res = append(res, s[start:i])
