@@ -556,7 +556,8 @@ func hash(thread *Thread, _ *Builtin, args Tuple, kwargs []Tuple) (Value, error)
 	if err := UnpackPositionalArgs("hash", args, kwargs, 1, &x); err != nil {
 		return nil, err
 	}
-	h, err := x.Hash()
+	// TODO(adonovan): pick a random per-process seed on each run?
+	h, err := x.Hash(3321718769)
 	return MakeUint(uint(h)), err
 }
 
@@ -878,9 +879,9 @@ func (r rangeValue) String() string {
 		return fmt.Sprintf("range(%d)", r.stop)
 	}
 }
-func (r rangeValue) Type() string          { return "range" }
-func (r rangeValue) Truth() Bool           { return r.len > 0 }
-func (r rangeValue) Hash() (uint32, error) { return 0, fmt.Errorf("unhashable: range") }
+func (r rangeValue) Type() string                { return "range" }
+func (r rangeValue) Truth() Bool                 { return r.len > 0 }
+func (r rangeValue) Hash(uint32) (uint32, error) { return 0, fmt.Errorf("unhashable: range") }
 
 func (x rangeValue) CompareSameType(op syntax.Token, y_ Value, depth int) (bool, error) {
 	y := y_.(rangeValue)

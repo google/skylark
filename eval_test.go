@@ -145,12 +145,12 @@ func TestExecFile(t *testing.T) {
 // A fib is an iterable value representing the infinite Fibonacci sequence.
 type fib struct{}
 
-func (t fib) Freeze()                   {}
-func (t fib) String() string            { return "fib" }
-func (t fib) Type() string              { return "fib" }
-func (t fib) Truth() skylark.Bool       { return true }
-func (t fib) Hash() (uint32, error)     { return 0, fmt.Errorf("fib is unhashable") }
-func (t fib) Iterate() skylark.Iterator { return &fibIterator{0, 1} }
+func (t fib) Freeze()                     {}
+func (t fib) String() string              { return "fib" }
+func (t fib) Type() string                { return "fib" }
+func (t fib) Truth() skylark.Bool         { return true }
+func (t fib) Hash(uint32) (uint32, error) { return 0, fmt.Errorf("fib is unhashable") }
+func (t fib) Iterate() skylark.Iterator   { return &fibIterator{0, 1} }
 
 type fibIterator struct{ x, y int }
 
@@ -189,10 +189,10 @@ type hasfields struct {
 
 var _ skylark.HasAttrs = (*hasfields)(nil)
 
-func (hf *hasfields) String() string        { return "hasfields" }
-func (hf *hasfields) Type() string          { return "hasfields" }
-func (hf *hasfields) Truth() skylark.Bool   { return true }
-func (hf *hasfields) Hash() (uint32, error) { return 42, nil }
+func (hf *hasfields) String() string                   { return "hasfields" }
+func (hf *hasfields) Type() string                     { return "hasfields" }
+func (hf *hasfields) Truth() skylark.Bool              { return true }
+func (hf *hasfields) Hash(seed uint32) (uint32, error) { return 42 * seed, nil }
 
 func (hf *hasfields) Freeze() {
 	if !hf.frozen {
