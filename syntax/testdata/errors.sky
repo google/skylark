@@ -128,7 +128,7 @@ load("a", "x") # ok
 ---
 load(1, 2) ### "first operand of load statement must be a string literal"
 ---
-load("a", x) ### `load operand must be "x" or x="originalname"`
+load("a", x) ### `load operand must be "x" or x="originalname" \(want '=' after x\)`
 ---
 load("a", x2=x) ### `original name of loaded symbol must be quoted: x2="originalname"`
 ---
