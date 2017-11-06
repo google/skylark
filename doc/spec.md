@@ -1330,7 +1330,8 @@ dynamic error.
 
 The hash of a value is an unspecified integer chosen so that two equal
 values have the same hash, in other words, `x == y => hash(x) == hash(y)`.
-A hashable value has the same hash throughout its lifetime.
+A hashable value has the same hash throughout its lifetime,
+though the hash may vary from one execution of a program to the next.
 
 Values of the types `NoneType`, `bool`, `int`, `float`, and `string`,
 which are all immutable, are hashable.
@@ -2885,6 +2886,8 @@ getattr("banana", "split")("a")	       # ["b", "n", "n", ""], equivalent to "ban
 `hash(x)` returns an integer hash value for x such that `x == y` implies `hash(x) == hash(y)`.
 
 `hash` fails if x, or any value upon which its hash depends, is unhashable.
+
+The hash function may vary from one execution of a program to the next.
 
 <b>Implementation note:</b> the Java implementation of the `hash`
 function accepts only strings.

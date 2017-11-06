@@ -96,10 +96,18 @@ type Value interface {
 	// Truth returns the truth value of an object.
 	Truth() Bool
 
-	// Hash returns a function of x such that Equals(x, y) => Hash(x) == Hash(y).
+	// x.Hash(seed) returns a function of x such that
+	// Equals(x, y) => Hash(x, seed) == Hash(y, seed),
+	// where seed is an arbitrary value chosen by the caller.
+	//
 	// Hash may fail if the value's type is not hashable, or if the value
 	// contains a non-hashable value.
-	Hash() (uint32, error)
+	//
+	// A good implementation should incorporate seed into the result
+	// so as to make it impractical to construct two non-equal
+	// values x and y such that x.Hash(seed) == y.Hash(seed) for all
+	// possible values of seed.
+	Hash(seed uint32) (uint32, error)
 }
 
 // A Comparable is a value that defines its own equivalence relation and
@@ -275,11 +283,11 @@ type NoneType byte
 
 const None = NoneType(0)
 
-func (NoneType) String() string        { return "None" }
-func (NoneType) Type() string          { return "NoneType" }
-func (NoneType) Freeze()               {} // immutable
-func (NoneType) Truth() Bool           { return False }
-func (NoneType) Hash() (uint32, error) { return 0, nil }
+func (NoneType) String() string                   { return "None" }
+func (NoneType) Type() string                     { return "NoneType" }
+func (NoneType) Freeze()                          {} // immutable
+func (NoneType) Truth() Bool                      { return False }
+func (NoneType) Hash(seed uint32) (uint32, error) { return seed, nil }
 func (NoneType) CompareSameType(op syntax.Token, y Value, depth int) (bool, error) {
 	return threeway(op, 0), nil
 }
@@ -299,13 +307,27 @@ func (b Bool) String() string {
 		return "False"
 	}
 }
-func (b Bool) Type() string          { return "bool" }
-func (b Bool) Freeze()               {} // immutable
-func (b Bool) Truth() Bool           { return b }
-func (b Bool) Hash() (uint32, error) { return uint32(b2i(bool(b))), nil }
+func (b Bool) Type() string { return "bool" }
+func (b Bool) Freeze()      {} // immutable
+func (b Bool) Truth() Bool  { return b }
+func (b Bool) Hash(seed uint32) (uint32, error) {
+	if b {
+		return seed ^ 0xAAAAAAAA, nil
+	} else {
+		return seed ^ 0x55555555, nil
+	}
+}
 func (x Bool) CompareSameType(op syntax.Token, y_ Value, depth int) (bool, error) {
 	y := y_.(Bool)
-	return threeway(op, b2i(bool(x))-b2i(bool(y))), nil
+	cmp := 0
+	if x != y {
+		if x {
+			cmp = +1
+		} else {
+			cmp = -1
+		}
+	}
+	return threeway(op, cmp), nil
 }
 
 // Float is the type of a Skylark float.
@@ -315,14 +337,14 @@ func (f Float) String() string { return strconv.FormatFloat(float64(f), 'g', 6, 
 func (f Float) Type() string   { return "float" }
 func (f Float) Freeze()        {} // immutable
 func (f Float) Truth() Bool    { return f != 0.0 }
-func (f Float) Hash() (uint32, error) {
+func (f Float) Hash(seed uint32) (uint32, error) {
 	// Equal float and int values must yield the same hash.
 	// TODO(adonovan): opt: if f is non-integral, and thus not equal
 	// to any Int, we can avoid the Int conversion and use a cheaper hash.
 	if isFinite(float64(f)) {
-		return finiteFloatToInt(f).Hash()
+		return finiteFloatToInt(f).Hash(seed)
 	}
-	return 1618033, nil // NaN, +/-Inf
+	return seed * 1618033, nil // NaN, +/-Inf
 }
 
 func floor(f Float) Float { return Float(math.Floor(float64(f))) }
@@ -374,13 +396,13 @@ func (x Float) Mod(y Float) Float { return Float(math.Mod(float64(x), float64(y)
 // iteration over a string yields each of its 1-byte substrings in order.
 type String string
 
-func (s String) String() string        { return strconv.Quote(string(s)) }
-func (s String) Type() string          { return "string" }
-func (s String) Freeze()               {} // immutable
-func (s String) Truth() Bool           { return len(s) > 0 }
-func (s String) Hash() (uint32, error) { return hashString(string(s)), nil }
-func (s String) Len() int              { return len(s) } // bytes
-func (s String) Index(i int) Value     { return s[i : i+1] }
+func (s String) String() string                   { return strconv.Quote(string(s)) }
+func (s String) Type() string                     { return "string" }
+func (s String) Freeze()                          {} // immutable
+func (s String) Truth() Bool                      { return len(s) > 0 }
+func (s String) Hash(seed uint32) (uint32, error) { return hashString(seed, string(s)), nil }
+func (s String) Len() int                         { return len(s) } // bytes
+func (s String) Index(i int) Value                { return s[i : i+1] }
 
 func (s String) Attr(name string) (Value, error) { return builtinAttr(s, name, stringMethods) }
 func (s String) AttrNames() []string             { return builtinAttrNames(stringMethods) }
@@ -417,10 +439,12 @@ func (si stringIterable) Type() string {
 		return "bytes"
 	}
 }
-func (si stringIterable) Freeze()               {} // immutable
-func (si stringIterable) Truth() Bool           { return True }
-func (si stringIterable) Hash() (uint32, error) { return 0, fmt.Errorf("unhashable: %s", si.Type()) }
-func (si stringIterable) Iterate() Iterator     { return &stringIterator{si, 0} }
+func (si stringIterable) Freeze()     {} // immutable
+func (si stringIterable) Truth() Bool { return True }
+func (si stringIterable) Hash(uint32) (uint32, error) {
+	return 0, fmt.Errorf("unhashable: %s", si.Type())
+}
+func (si stringIterable) Iterate() Iterator { return &stringIterator{si, 0} }
 
 type stringIterator struct {
 	si stringIterable
@@ -464,12 +488,12 @@ type Function struct {
 	freevars Tuple
 }
 
-func (fn *Function) Name() string          { return fn.name }
-func (fn *Function) Hash() (uint32, error) { return hashString(fn.name), nil }
-func (fn *Function) Freeze()               { fn.defaults.Freeze(); fn.freevars.Freeze() }
-func (fn *Function) String() string        { return toString(fn) }
-func (fn *Function) Type() string          { return "function" }
-func (fn *Function) Truth() Bool           { return true }
+func (fn *Function) Name() string                     { return fn.name }
+func (fn *Function) Hash(seed uint32) (uint32, error) { return hashString(seed, fn.name), nil }
+func (fn *Function) Freeze()                          { fn.defaults.Freeze(); fn.freevars.Freeze() }
+func (fn *Function) String() string                   { return toString(fn) }
+func (fn *Function) Type() string                     { return "function" }
+func (fn *Function) Truth() Bool                      { return true }
 
 func (fn *Function) Syntax() *syntax.Function { return fn.syntax }
 
@@ -486,8 +510,8 @@ func (b *Builtin) Freeze() {
 		b.recv.Freeze()
 	}
 }
-func (b *Builtin) Hash() (uint32, error) {
-	h := hashString(b.name)
+func (b *Builtin) Hash(seed uint32) (uint32, error) {
+	h := hashString(seed, b.name)
 	if b.recv != nil {
 		h ^= 5521
 	}
@@ -541,7 +565,7 @@ func (d *Dict) String() string                                  { return toStrin
 func (d *Dict) Type() string                                    { return "dict" }
 func (d *Dict) Freeze()                                         { d.ht.freeze() }
 func (d *Dict) Truth() Bool                                     { return d.Len() > 0 }
-func (d *Dict) Hash() (uint32, error)                           { return 0, fmt.Errorf("unhashable type: dict") }
+func (d *Dict) Hash(uint32) (uint32, error)                     { return 0, fmt.Errorf("unhashable type: dict") }
 
 func (d *Dict) Attr(name string) (Value, error) { return builtinAttr(d, name, dictMethods) }
 func (d *Dict) AttrNames() []string             { return builtinAttrNames(dictMethods) }
@@ -611,12 +635,12 @@ func (l *List) checkMutable(verb string, structural bool) error {
 	return nil
 }
 
-func (l *List) String() string        { return toString(l) }
-func (l *List) Type() string          { return "list" }
-func (l *List) Hash() (uint32, error) { return 0, fmt.Errorf("unhashable type: list") }
-func (l *List) Truth() Bool           { return l.Len() > 0 }
-func (l *List) Len() int              { return len(l.elems) }
-func (l *List) Index(i int) Value     { return l.elems[i] }
+func (l *List) String() string              { return toString(l) }
+func (l *List) Type() string                { return "list" }
+func (l *List) Hash(uint32) (uint32, error) { return 0, fmt.Errorf("unhashable type: list") }
+func (l *List) Truth() Bool                 { return l.Len() > 0 }
+func (l *List) Len() int                    { return len(l.elems) }
+func (l *List) Index(i int) Value           { return l.elems[i] }
 
 func (l *List) Attr(name string) (Value, error) { return builtinAttr(l, name, listMethods) }
 func (l *List) AttrNames() []string             { return builtinAttrNames(listMethods) }
@@ -727,16 +751,15 @@ func (x Tuple) CompareSameType(op syntax.Token, y_ Value, depth int) (bool, erro
 	return sliceCompare(op, x, y, depth)
 }
 
-func (t Tuple) Hash() (uint32, error) {
-	// Use same algorithm as Python.
-	var x, mult uint32 = 0x345678, 1000003
+func (t Tuple) Hash(seed uint32) (uint32, error) {
+	var x, mult uint32 = seed, 1000003
 	for _, elem := range t {
-		y, err := elem.Hash()
+		y, err := elem.Hash(x)
 		if err != nil {
 			return 0, err
 		}
-		x = x ^ y*mult
-		mult += 82520 + uint32(len(t)+len(t))
+		x = y * mult
+		mult += 82520 + uint32(len(t)+len(t)) // invariant: mult is odd
 	}
 	return x, nil
 }
@@ -769,7 +792,7 @@ func (s *Set) String() string                         { return toString(s) }
 func (s *Set) Type() string                           { return "set" }
 func (s *Set) elems() []Value                         { return s.ht.keys() }
 func (s *Set) Freeze()                                { s.ht.freeze() }
-func (s *Set) Hash() (uint32, error)                  { return 0, fmt.Errorf("unhashable type: set") }
+func (s *Set) Hash(uint32) (uint32, error)            { return 0, fmt.Errorf("unhashable type: set") }
 func (s *Set) Truth() Bool                            { return s.Len() > 0 }
 
 func (s *Set) Attr(name string) (Value, error) { return builtinAttr(s, name, setMethods) }
@@ -1042,14 +1065,6 @@ func threeway(op syntax.Token, cmp int) bool {
 		return cmp > 0
 	}
 	panic(op)
-}
-
-func b2i(b bool) int {
-	if b {
-		return 1
-	} else {
-		return 0
-	}
 }
 
 // Len returns the length of a string or sequence value,
