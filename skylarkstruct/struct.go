@@ -144,18 +144,18 @@ func (s *Struct) Constructor() skylark.Value { return s.constructor }
 
 func (s *Struct) Type() string        { return "struct" }
 func (s *Struct) Truth() skylark.Bool { return true } // even when empty
-func (s *Struct) Hash() (uint32, error) {
+func (s *Struct) Hash(seed uint32) (uint32, error) {
 	// Same algorithm as Tuple.hash, but with different primes.
-	var x, m uint32 = 8731, 9839
+	var x, mult uint32 = seed, 9839
 	for _, e := range s.entries {
-		namehash, _ := skylark.String(e.name).Hash()
-		x = x ^ 3*namehash
-		y, err := e.value.Hash()
+		namehash, _ := skylark.String(e.name).Hash(x)
+		x = 3 * namehash
+		y, err := e.value.Hash(x)
 		if err != nil {
 			return 0, err
 		}
-		x = x ^ y*m
-		m += 7349
+		x = y * mult
+		mult += 7349
 	}
 	return x, nil
 }

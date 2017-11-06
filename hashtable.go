@@ -4,7 +4,10 @@
 
 package skylark
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+)
 
 // hashtable is used to represent Skylark dict and set values.
 // It is a hash table whose key/value entries form a doubly-linked list
@@ -17,6 +20,7 @@ type hashtable struct {
 	head      *entry  // insertion order doubly-linked list; may be nil
 	tailLink  **entry // address of nil link at end of list (perhaps &head)
 	frozen    bool
+	seed      uint32 // per-table random seed, to defeat hash flooding
 }
 
 const bucketSize = 8
@@ -60,8 +64,9 @@ func (ht *hashtable) insert(k, v Value) error {
 	if ht.table == nil {
 		ht.table = ht.bucket0[:1]
 		ht.tailLink = &ht.head
+		ht.seed = rand.Uint32()
 	}
-	h, err := k.Hash()
+	h, err := k.Hash(ht.seed)
 	if err != nil {
 		return err
 	}
@@ -155,7 +160,7 @@ func (ht *hashtable) grow() {
 }
 
 func (ht *hashtable) lookup(k Value) (v Value, found bool, err error) {
-	h, err := k.Hash()
+	h, err := k.Hash(ht.seed)
 	if err != nil {
 		return nil, false, err // unhashable
 	}
@@ -221,7 +226,7 @@ func (ht *hashtable) delete(k Value) (v Value, found bool, err error) {
 	if ht.table == nil {
 		return None, false, nil // empty
 	}
-	h, err := k.Hash()
+	h, err := k.Hash(ht.seed)
 	if err != nil {
 		return nil, false, err // unhashable
 	}
@@ -332,8 +337,8 @@ func (it *keyIterator) Done() {
 }
 
 // hashString computes the FNV hash of s.
-func hashString(s string) uint32 {
-	var h uint32
+func hashString(seed uint32, s string) uint32 {
+	h := seed
 	for i := 0; i < len(s); i++ {
 		h ^= uint32(s[i])
 		h *= 16777619

@@ -116,12 +116,13 @@ func (i Int) String() string { return i.bigint.String() }
 func (i Int) Type() string   { return "int" }
 func (i Int) Freeze()        {} // immutable
 func (i Int) Truth() Bool    { return i.Sign() != 0 }
-func (i Int) Hash() (uint32, error) {
-	var lo big.Word
-	if i.bigint.Sign() != 0 {
-		lo = i.bigint.Bits()[0]
+func (i Int) Hash(seed uint32) (uint32, error) {
+	h := seed
+	for _, w := range i.bigint.Bits() {
+		h ^= uint32(w)
+		h *= 12582917
 	}
-	return 12582917 * uint32(lo+3), nil
+	return h, nil
 }
 func (x Int) CompareSameType(op syntax.Token, y Value, depth int) (bool, error) {
 	return threeway(op, x.bigint.Cmp(y.(Int).bigint)), nil
