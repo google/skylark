@@ -472,6 +472,8 @@ func (fn *Function) Type() string          { return "function" }
 func (fn *Function) Truth() Bool           { return true }
 
 func (fn *Function) Syntax() *syntax.Function { return fn.syntax }
+func (fn *Function) FreeVars() Tuple          { return fn.freevars }
+func (fn *Function) Globals() StringDict      { return fn.globals }
 
 // A Builtin is a function implemented in Go.
 type Builtin struct {
