@@ -488,3 +488,31 @@ func TestUnpackUserDefined(t *testing.T) {
 		t.Errorf("unpack args error = %q, want %q", err, want)
 	}
 }
+
+func TestFunctionAPI(t *testing.T) {
+	const src = `
+def f():
+  x = 1
+  y = 2
+  return lambda: x + 3
+
+result = f()
+`
+	thread := new(skylark.Thread)
+	globals := make(skylark.StringDict)
+	if err := skylark.ExecFile(thread, "function_api.go", src, globals); err != nil {
+		t.Fatal(err)
+	}
+
+	result, ok := globals["result"].(*skylark.Function)
+	if !ok {
+		t.Errorf("expected function, actual: %T", result)
+	}
+
+	freeVars := result.FreeVars()
+	if len(freeVars) != 1 {
+		t.Errorf("expected freevars: [1]. Actual: %+v", freeVars)
+	} else if val, ok := freeVars[0].(skylark.Int).Int64(); !ok || val != 1 {
+		t.Errorf("expected freevars: [1]. Actual: %+v", freeVars)
+	}
+}
