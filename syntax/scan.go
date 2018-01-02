@@ -891,7 +891,7 @@ func isIdentStart(c rune) bool {
 func isdigit(c rune) bool  { return '0' <= c && c <= '9' }
 func isodigit(c rune) bool { return '0' <= c && c <= '7' }
 func isxdigit(c rune) bool { return isdigit(c) || 'A' <= c && c <= 'F' || 'a' <= c && c <= 'f' }
-func isbdigit(c rune) bool { return '0' <= c && c <= '1' }
+func isbdigit(c rune) bool { return '0' == c || c == '1' }
 
 // keywordToken records the special tokens for
 // strings that should not be treated as ordinary identifiers.
