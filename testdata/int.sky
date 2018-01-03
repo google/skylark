@@ -101,7 +101,7 @@ assert.fails(lambda: int("0x123", 8), "invalid literal.*base 8")
 assert.fails(lambda: int("-0x123", 8), "invalid literal.*base 8")
 assert.fails(lambda: int("0o123", 16), "invalid literal.*base 16")
 assert.fails(lambda: int("-0o123", 16), "invalid literal.*base 16")
-assert.fails(int("0x110", 2), "invalid literal.*base 2")
+assert.fails(lambda: int("0x110", 2), "invalid literal.*base 2")
 # int from string, auto detect base
 assert.eq(int("123", 0), 123)
 assert.eq(int("+123", 0), +123)
