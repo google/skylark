@@ -164,8 +164,8 @@ pass`, "pass newline pass EOF"}, // consecutive newlines are consolidated
 		{"0b1010", `10 EOF`},
 		{"0B111101", `61 EOF`},
 		{"0b3", `foo.sky:1:3: invalid binary literal`},
-		{"0b1010201", `foo.sky:1:10: got int literal, want newline`},
-		{"0b1010.01", `foo.sky:1:10: got float literal, want newline`},
+		{"0b1010201", `10 201 EOF`},
+		{"0b1010.01", `10 1.000000e-02 EOF`},
 		{"0b0000", `0 EOF`},
 		// octal
 		{"0o123", `83 EOF`},
