@@ -486,7 +486,7 @@ func (p *parser) parseTest() Expr {
 	return x
 }
 
-// parseTest parses a a single-component expression without
+// parseTestNoCond parses a a single-component expression without
 // consuming a trailing 'if expr else expr'.
 func (p *parser) parseTestNoCond() Expr {
 	if p.tok == LAMBDA {
@@ -495,7 +495,7 @@ func (p *parser) parseTestNoCond() Expr {
 	return p.parseTestPrec(0)
 }
 
-// parseTest parses a lambda expression.
+// parseLambda parses a lambda expression.
 // The allowCond flag allows the body to be an 'a if b else c' conditional.
 func (p *parser) parseLambda(allowCond bool) Expr {
 	lambda := p.nextToken()

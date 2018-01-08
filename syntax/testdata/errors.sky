@@ -91,7 +91,7 @@ _ = [a for b in c if 1, 2] ### `got ',', want ']', for, or if`
 # Lambda is ok though.
 _ = [a for b in c if lambda: d] # ok
 
-# But the body of such a lambda may not be an conditional:
+# But the body of such a lambda may not be a conditional:
 _ = [a for b in c if (lambda: d if e else f)] # ok
 _ = [a for b in c if lambda: d if e else f]   ### "got else, want ']'"
 
