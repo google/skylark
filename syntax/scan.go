@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/big"
 	"strconv"
 	"strings"
 	"unicode"
@@ -29,8 +30,9 @@ const (
 	OUTDENT
 
 	// Tokens with values
-	IDENT  // x
-	INT    // 123
+	IDENT // x
+	INT   // 123
+	BIGINT
 	FLOAT  // 1.23e45
 	STRING // "foo" or 'foo' or '''foo''' or r'foo' or r"foo"
 
@@ -336,6 +338,7 @@ func (sc *scanner) readRune() rune {
 type tokenValue struct {
 	raw    string   // raw text of token
 	int    int64    // decoded int
+	bigInt *big.Int // decoded integers > int64
 	float  float64  // decoded float
 	string string   // decoded string
 	pos    Position // start position of token
@@ -861,15 +864,26 @@ func (sc *scanner) scanNumber(val *tokenValue, c rune) Token {
 		return FLOAT
 	} else {
 		var err error
+		var ok bool = true
 		s := val.raw
 		if len(s) > 2 && s[0] == '0' && (s[1] == 'o' || s[1] == 'O') {
 			val.int, err = strconv.ParseInt(s[2:], 8, 64)
 		} else if len(s) > 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B') {
 			val.int, err = strconv.ParseInt(s[2:], 2, 64)
 		} else {
+			// Checking int
 			val.int, err = strconv.ParseInt(s, 0, 64)
+			// Checking BigInt
+			if err != nil {
+				num := new(big.Int)
+				val.bigInt, ok = num.SetString(s, 0)
+				if ok {
+					return BIGINT
+				}
+			}
+			err = nil
 		}
-		if err != nil {
+		if err != nil || !ok {
 			sc.error(start, "invalid int literal")
 		}
 		return INT

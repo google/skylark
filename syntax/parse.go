@@ -762,7 +762,7 @@ func (p *parser) parseArgs() []Expr {
 }
 
 //  primary = IDENT
-//          | INT | FLOAT
+//          | INT | BIGINT |FLOAT
 //          | STRING
 //          | '[' ...                    // list literal or comprehension
 //          | '{' ...                    // dict literal or comprehension
@@ -773,12 +773,14 @@ func (p *parser) parsePrimary() Expr {
 	case IDENT:
 		return p.parseIdent()
 
-	case INT, FLOAT, STRING:
+	case INT, BIGINT, FLOAT, STRING:
 		var val interface{}
 		tok := p.tok
 		switch tok {
 		case INT:
 			val = p.tokval.int
+		case BIGINT:
+			val = p.tokval.bigInt
 		case FLOAT:
 			val = p.tokval.float
 		case STRING:

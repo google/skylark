@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/big"
 	"sort"
 	"strings"
 	"unicode"
@@ -724,6 +725,8 @@ func eval(fr *Frame, e syntax.Expr) (Value, error) {
 		switch e.Token {
 		case syntax.INT:
 			return MakeInt64(e.Value.(int64)), nil
+		case syntax.BIGINT:
+			return Int{e.Value.(*big.Int)}, nil
 		case syntax.FLOAT:
 			return Float(e.Value.(float64)), nil
 		case syntax.STRING:
