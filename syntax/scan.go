@@ -30,9 +30,8 @@ const (
 	OUTDENT
 
 	// Tokens with values
-	IDENT // x
-	INT   // 123
-	BIGINT
+	IDENT  // x
+	INT    // 123
 	FLOAT  // 1.23e45
 	STRING // "foo" or 'foo' or '''foo''' or r'foo' or r"foo"
 
@@ -864,26 +863,24 @@ func (sc *scanner) scanNumber(val *tokenValue, c rune) Token {
 		return FLOAT
 	} else {
 		var err error
-		var ok bool = true
 		s := val.raw
+		val.bigInt = nil
 		if len(s) > 2 && s[0] == '0' && (s[1] == 'o' || s[1] == 'O') {
 			val.int, err = strconv.ParseInt(s[2:], 8, 64)
 		} else if len(s) > 2 && s[0] == '0' && (s[1] == 'b' || s[1] == 'B') {
 			val.int, err = strconv.ParseInt(s[2:], 2, 64)
 		} else {
-			// Checking int
 			val.int, err = strconv.ParseInt(s, 0, 64)
-			// Checking BigInt
 			if err != nil {
 				num := new(big.Int)
+				var ok bool = true
 				val.bigInt, ok = num.SetString(s, 0)
 				if ok {
-					return BIGINT
+					err = nil
 				}
 			}
-			err = nil
 		}
-		if err != nil || !ok {
+		if err != nil {
 			sc.error(start, "invalid int literal")
 		}
 		return INT

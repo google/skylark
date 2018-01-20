@@ -773,14 +773,16 @@ func (p *parser) parsePrimary() Expr {
 	case IDENT:
 		return p.parseIdent()
 
-	case INT, BIGINT, FLOAT, STRING:
+	case INT, FLOAT, STRING:
 		var val interface{}
 		tok := p.tok
 		switch tok {
 		case INT:
+			if p.tokval.bigInt != nil {
+				val = p.tokval.bigInt
+				break
+			}
 			val = p.tokval.int
-		case BIGINT:
-			val = p.tokval.bigInt
 		case FLOAT:
 			val = p.tokval.float
 		case STRING:
