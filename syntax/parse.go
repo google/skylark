@@ -780,9 +780,9 @@ func (p *parser) parsePrimary() Expr {
 		case INT:
 			if p.tokval.bigInt != nil {
 				val = p.tokval.bigInt
-				break
+			} else {
+				val = p.tokval.int
 			}
-			val = p.tokval.int
 		case FLOAT:
 			val = p.tokval.float
 		case STRING:

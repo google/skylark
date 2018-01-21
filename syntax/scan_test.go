@@ -37,9 +37,9 @@ func scan(src interface{}) (tokens string, err error) {
 		case INT:
 			if val.bigInt != nil {
 				fmt.Fprintf(&buf, "%d", val.bigInt)
-				break
+			} else {
+				fmt.Fprintf(&buf, "%d", val.int)
 			}
-			fmt.Fprintf(&buf, "%d", val.int)
 		case FLOAT:
 			fmt.Fprintf(&buf, "%e", val.float)
 		case STRING:
@@ -166,6 +166,7 @@ pass`, "pass newline pass EOF"}, // consecutive newlines are consolidated
 		{"0XG", `foo.sky:1:1: invalid hex literal`},
 		{"0xA.", `10 . EOF`},
 		{"0xA.e1", `10 . e1 EOF`},
+		{"0x12345678deadbeef12345678", `5634002672576678570168178296 EOF`},
 		// binary
 		{"0b1010", `10 EOF`},
 		{"0B111101", `61 EOF`},
