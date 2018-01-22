@@ -762,7 +762,7 @@ func (p *parser) parseArgs() []Expr {
 }
 
 //  primary = IDENT
-//          | INT |FLOAT
+//          | INT | FLOAT
 //          | STRING
 //          | '[' ...                    // list literal or comprehension
 //          | '{' ...                    // dict literal or comprehension
