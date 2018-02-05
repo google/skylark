@@ -227,8 +227,14 @@ func readSource(filename string, src interface{}) (data []byte, err error) {
 	case string:
 		data = []byte(src)
 	case []byte:
+		if src == nil {
+			return readSource(filename, nil)
+		}
 		data = src
 	case io.Reader:
+		if src == nil {
+			return readSource(filename, nil)
+		}
 		data, err = ioutil.ReadAll(src)
 	case nil:
 		data, err = ioutil.ReadFile(filename)

@@ -343,6 +343,16 @@ func TestParseErrors(t *testing.T) {
 	}
 }
 
+func TestParseTypes(t *testing.T) {
+	// Should fail to parse the file, regardless of the type passed to src.
+	if _, err := syntax.Parse("foo.sky", nil); err == nil {
+		t.Error("expected error")
+	}
+	if _, err := syntax.Parse("foo.sky", []byte(nil)); err == nil {
+		t.Error("expected error")
+	}
+}
+
 func TestWalk(t *testing.T) {
 	const src = `
 for x in y:
