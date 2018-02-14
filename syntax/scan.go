@@ -28,6 +28,8 @@ const (
 	NEWLINE
 	INDENT
 	OUTDENT
+	LINE_COMMENT
+	SUFFIX_COMMENT
 
 	// Tokens with values
 	IDENT  // x
@@ -102,63 +104,65 @@ func (tok Token) GoString() string {
 }
 
 var tokenNames = [...]string{
-	ILLEGAL:       "illegal token",
-	EOF:           "end of file",
-	NEWLINE:       "newline",
-	INDENT:        "indent",
-	OUTDENT:       "outdent",
-	IDENT:         "identifier",
-	INT:           "int literal",
-	FLOAT:         "float literal",
-	STRING:        "string literal",
-	PLUS:          "+",
-	MINUS:         "-",
-	STAR:          "*",
-	SLASH:         "/",
-	SLASHSLASH:    "//",
-	PERCENT:       "%",
-	AMP:           "&",
-	PIPE:          "|",
-	DOT:           ".",
-	COMMA:         ",",
-	EQ:            "=",
-	SEMI:          ";",
-	COLON:         ":",
-	LPAREN:        "(",
-	RPAREN:        ")",
-	LBRACK:        "[",
-	RBRACK:        "]",
-	LBRACE:        "{",
-	RBRACE:        "]",
-	LT:            "<",
-	GT:            ">",
-	GE:            ">=",
-	LE:            "<=",
-	EQL:           "==",
-	NEQ:           "!=",
-	PLUS_EQ:       "+=",
-	MINUS_EQ:      "-=",
-	STAR_EQ:       "*=",
-	SLASH_EQ:      "/=",
-	SLASHSLASH_EQ: "//=",
-	PERCENT_EQ:    "%=",
-	STARSTAR:      "**",
-	AND:           "and",
-	BREAK:         "break",
-	CONTINUE:      "continue",
-	DEF:           "def",
-	ELIF:          "elif",
-	ELSE:          "else",
-	FOR:           "for",
-	IF:            "if",
-	IN:            "in",
-	LAMBDA:        "lambda",
-	LOAD:          "load",
-	NOT:           "not",
-	NOT_IN:        "not in",
-	OR:            "or",
-	PASS:          "pass",
-	RETURN:        "return",
+	ILLEGAL:        "illegal token",
+	EOF:            "end of file",
+	NEWLINE:        "newline",
+	INDENT:         "indent",
+	OUTDENT:        "outdent",
+	LINE_COMMENT:   "line comment",
+	SUFFIX_COMMENT: "suffix comment",
+	IDENT:          "identifier",
+	INT:            "int literal",
+	FLOAT:          "float literal",
+	STRING:         "string literal",
+	PLUS:           "+",
+	MINUS:          "-",
+	STAR:           "*",
+	SLASH:          "/",
+	SLASHSLASH:     "//",
+	PERCENT:        "%",
+	AMP:            "&",
+	PIPE:           "|",
+	DOT:            ".",
+	COMMA:          ",",
+	EQ:             "=",
+	SEMI:           ";",
+	COLON:          ":",
+	LPAREN:         "(",
+	RPAREN:         ")",
+	LBRACK:         "[",
+	RBRACK:         "]",
+	LBRACE:         "{",
+	RBRACE:         "]",
+	LT:             "<",
+	GT:             ">",
+	GE:             ">=",
+	LE:             "<=",
+	EQL:            "==",
+	NEQ:            "!=",
+	PLUS_EQ:        "+=",
+	MINUS_EQ:       "-=",
+	STAR_EQ:        "*=",
+	SLASH_EQ:       "/=",
+	SLASHSLASH_EQ:  "//=",
+	PERCENT_EQ:     "%=",
+	STARSTAR:       "**",
+	AND:            "and",
+	BREAK:          "break",
+	CONTINUE:       "continue",
+	DEF:            "def",
+	ELIF:           "elif",
+	ELSE:           "else",
+	FOR:            "for",
+	IF:             "if",
+	IN:             "in",
+	LAMBDA:         "lambda",
+	LOAD:           "load",
+	NOT:            "not",
+	NOT_IN:         "not in",
+	OR:             "or",
+	PASS:           "pass",
+	RETURN:         "return",
 }
 
 // A Position describes the location of a rune of input.
@@ -194,6 +198,13 @@ func (p Position) add(s string) Position {
 
 func (p Position) String() string {
 	return fmt.Sprintf("%s:%d:%d", p.Filename(), p.Line, p.Col)
+}
+
+func (p Position) IsBefore(p2 Position) bool {
+	if p.Line != p2.Line {
+		return p.Line < p2.Line
+	}
+	return p.Col < p2.Col
 }
 
 // An scanner represents a single input file being parsed.
@@ -462,10 +473,17 @@ start:
 
 	// comment
 	if c == '#' {
+		sc.startToken(val)
 		// Consume up to (but not including) newline.
 		for c != 0 && c != '\n' {
 			sc.readRune()
 			c = sc.peekRune()
+		}
+		sc.endToken(val)
+		if blank {
+			return LINE_COMMENT
+		} else {
+			return SUFFIX_COMMENT
 		}
 	}
 

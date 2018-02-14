@@ -16,6 +16,9 @@ import "log"
 // Enable this flag to print the token stream and log.Fatal on the first error.
 const debug = false
 
+// Enable this flag to attach comments to the AST.
+const keepComments = false
+
 // Parse parses the input data and returns the corresponding parse tree.
 //
 // If src != nil, ParseFile parses the source from src and the filename
@@ -35,6 +38,9 @@ func Parse(filename string, src interface{}) (f *File, err error) {
 	f = p.parseFile()
 	if f != nil {
 		f.Path = filename
+	}
+	if keepComments {
+		p.assignComments(f)
 	}
 	return f, nil
 }
@@ -66,9 +72,10 @@ func ParseExpr(filename string, src interface{}) (expr Expr, err error) {
 }
 
 type parser struct {
-	in     *scanner
-	tok    Token
-	tokval tokenValue
+	in       *scanner
+	tok      Token
+	tokval   tokenValue
+	comments []Comment
 }
 
 // nextToken advances the scanner and returns the position of the
@@ -76,6 +83,14 @@ type parser struct {
 func (p *parser) nextToken() Position {
 	oldpos := p.tokval.pos
 	p.tok = p.in.nextToken(&p.tokval)
+	// save comments
+	for p.tok == LINE_COMMENT || p.tok == SUFFIX_COMMENT {
+		if keepComments {
+			suffix := p.tok == SUFFIX_COMMENT
+			p.comments = append(p.comments, Comment{p.tokval.pos, p.tokval.raw, suffix})
+		}
+		p.tok = p.in.nextToken(&p.tokval)
+	}
 	// enable to see the token stream
 	if debug {
 		log.Printf("nextToken: %-20s%+v\n", p.tok, p.tokval.pos)
@@ -937,4 +952,100 @@ func terminatesExprList(tok Token) bool {
 		return true
 	}
 	return false
+}
+
+// Comment assignment.
+// We build two lists of all subexpressions, preorder and postorder.
+// The preorder list is ordered by start location, with outer expressions first.
+// The postorder list is ordered by end location, with outer expressions last.
+// We use the preorder list to assign each whole-line comment to the syntax
+// immediately following it, and we use the postorder list to assign each
+// end-of-line comment to the syntax immediately preceding it.
+
+// flattenAst returns the list of AST nodes, both in prefix order and in postfix
+// order.
+func flattenAst(f *File) (pre []Node, post []Node) {
+	pre = []Node{}
+	post = []Node{}
+	stack := []Node{}
+	Walk(f, func(n Node) bool {
+		if n != nil {
+			pre = append(pre, n)
+			stack = append(stack, n)
+		} else {
+			post = append(post, stack[len(stack)-1])
+			stack = stack[:len(stack)-1]
+		}
+		return true
+	})
+	return pre, post
+}
+
+// assignComments attaches comments to nearby syntax.
+func (p *parser) assignComments(f *File) {
+	pre, post := flattenAst(f)
+
+	// Split into whole-line comments and suffix comments.
+	var line, suffix []Comment
+	for _, com := range p.comments {
+		if com.Suffix {
+			suffix = append(suffix, com)
+		} else {
+			line = append(line, com)
+		}
+	}
+
+	// // Assign line comments to syntax immediately following.
+	for _, x := range pre {
+		start, _ := x.Span()
+		xcom := x.Comment()
+
+		switch x.(type) {
+		case *File:
+			continue
+		}
+
+		for len(line) > 0 && !start.IsBefore(line[0].Start) {
+			xcom.Before = append(xcom.Before, line[0])
+			line = line[1:]
+		}
+	}
+
+	// Remaining line comments go at end of file.
+	f.After = append(f.After, line...)
+
+	// // Assign suffix comments to syntax immediately before.
+	for i := len(post) - 1; i >= 0; i-- {
+		x := post[i]
+
+		// Do not assign suffix comments to file
+		switch x.(type) {
+		case *File:
+			continue
+		}
+
+		_, end := x.Span()
+		xcom := x.Comment()
+		for len(suffix) > 0 && end.IsBefore(suffix[len(suffix)-1].Start) {
+			xcom.Suffix = append(xcom.Suffix, suffix[len(suffix)-1])
+			suffix = suffix[:len(suffix)-1]
+		}
+	}
+
+	// We assigned suffix comments in reverse.
+	// If multiple suffix comments were appended to the same
+	// expression node, they are now in reverse. Fix that.
+	for _, x := range post {
+		reverseComments(x.Comment().Suffix)
+	}
+
+	// Remaining suffix comments go at beginning of file.
+	f.Before = append(f.Before, suffix...)
+}
+
+// reverseComments reverses the []Comment list.
+func reverseComments(list []Comment) {
+	for i, j := 0, len(list)-1; i < j; i, j = i+1, j-1 {
+		list[i], list[j] = list[j], list[i]
+	}
 }
