@@ -476,7 +476,7 @@ start:
 
 	// comment
 	if c == '#' {
-		if keepComments {
+		if sc.keepComments {
 			sc.startToken(val)
 		}
 		// Consume up to newline (included).
@@ -484,7 +484,7 @@ start:
 			sc.readRune()
 			c = sc.peekRune()
 		}
-		if keepComments {
+		if sc.keepComments {
 			sc.endToken(val)
 			if sc.blank {
 				return LINE_COMMENT

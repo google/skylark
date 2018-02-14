@@ -16,9 +16,6 @@ import "log"
 // Enable this flag to print the token stream and log.Fatal on the first error.
 const debug = false
 
-// Enable this flag to attach comments to the AST.
-const keepComments = false
-
 type Mode uint
 
 const (
@@ -45,7 +42,7 @@ func Parse(filename string, src interface{}, mode Mode) (f *File, err error) {
 	if f != nil {
 		f.Path = filename
 	}
-	if keepComments {
+	if mode&RetainComments != 0 {
 		p.assignComments(f)
 	}
 	return f, nil
@@ -91,10 +88,8 @@ func (p *parser) nextToken() Position {
 	p.tok = p.in.nextToken(&p.tokval)
 	// save comments
 	for p.tok == LINE_COMMENT || p.tok == SUFFIX_COMMENT {
-		if keepComments {
-			suffix := p.tok == SUFFIX_COMMENT
-			p.comments = append(p.comments, Comment{p.tokval.pos, p.tokval.raw, suffix})
-		}
+		suffix := p.tok == SUFFIX_COMMENT
+		p.comments = append(p.comments, Comment{p.tokval.pos, p.tokval.raw, suffix})
 		p.tok = p.in.nextToken(&p.tokval)
 	}
 	// enable to see the token stream

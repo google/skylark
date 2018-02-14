@@ -16,7 +16,7 @@ type Node interface {
 // A Comment represents a single # comment.
 type Comment struct {
 	Start  Position
-	Token  string // without trailing newline
+	Text   string // without trailing newline
 	Suffix bool   // an end-of-line (not whole line) comment
 }
 
