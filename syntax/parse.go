@@ -19,6 +19,12 @@ const debug = false
 // Enable this flag to attach comments to the AST.
 const keepComments = false
 
+type Mode uint
+
+const (
+	RetainComments Mode = 1 << iota
+)
+
 // Parse parses the input data and returns the corresponding parse tree.
 //
 // If src != nil, ParseFile parses the source from src and the filename
@@ -26,8 +32,8 @@ const keepComments = false
 // The type of the argument for the src parameter must be string,
 // []byte, or io.Reader.
 // If src == nil, ParseFile parses the file specified by filename.
-func Parse(filename string, src interface{}) (f *File, err error) {
-	in, err := newScanner(filename, src)
+func Parse(filename string, src interface{}, mode Mode) (f *File, err error) {
+	in, err := newScanner(filename, src, mode&RetainComments != 0)
 	if err != nil {
 		return nil, err
 	}
@@ -47,8 +53,8 @@ func Parse(filename string, src interface{}) (f *File, err error) {
 
 // ParseExpr parses a Skylark expression.
 // See Parse for explanation of parameters.
-func ParseExpr(filename string, src interface{}) (expr Expr, err error) {
-	in, err := newScanner(filename, src)
+func ParseExpr(filename string, src interface{}, mode Mode) (expr Expr, err error) {
+	in, err := newScanner(filename, src, mode&RetainComments != 0)
 	if err != nil {
 		return nil, err
 	}
@@ -962,11 +968,9 @@ func terminatesExprList(tok Token) bool {
 // immediately following it, and we use the postorder list to assign each
 // end-of-line comment to the syntax immediately preceding it.
 
-// flattenAst returns the list of AST nodes, both in prefix order and in postfix
+// flattenAST returns the list of AST nodes, both in prefix order and in postfix
 // order.
-func flattenAst(f *File) (pre []Node, post []Node) {
-	pre = []Node{}
-	post = []Node{}
+func flattenAST(f *File) (pre, post []Node) {
 	stack := []Node{}
 	Walk(f, func(n Node) bool {
 		if n != nil {
@@ -983,7 +987,7 @@ func flattenAst(f *File) (pre []Node, post []Node) {
 
 // assignComments attaches comments to nearby syntax.
 func (p *parser) assignComments(f *File) {
-	pre, post := flattenAst(f)
+	pre, post := flattenAST(f)
 
 	// Split into whole-line comments and suffix comments.
 	var line, suffix []Comment

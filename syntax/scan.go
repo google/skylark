@@ -209,28 +209,30 @@ func (p Position) IsBefore(p2 Position) bool {
 
 // An scanner represents a single input file being parsed.
 type scanner struct {
-	complete  []byte   // entire input
-	rest      []byte   // rest of input
-	token     []byte   // token being scanned
-	pos       Position // current input position
-	depth     int      // nesting of [ ] { } ( )
-	indentstk []int    // stack of indentation levels
-	dents     int      // number of saved INDENT (>0) or OUTDENT (<0) tokens to return
-	lineStart bool     // after NEWLINE; convert spaces to indentation tokens
-	blank     bool
+	complete     []byte   // entire input
+	rest         []byte   // rest of input
+	token        []byte   // token being scanned
+	pos          Position // current input position
+	depth        int      // nesting of [ ] { } ( )
+	indentstk    []int    // stack of indentation levels
+	dents        int      // number of saved INDENT (>0) or OUTDENT (<0) tokens to return
+	lineStart    bool     // after NEWLINE; convert spaces to indentation tokens
+	blank        bool     // true when the line is blank
+	keepComments bool     // if false, do not return comments tokens
 }
 
-func newScanner(filename string, src interface{}) (*scanner, error) {
+func newScanner(filename string, src interface{}, keepComments bool) (*scanner, error) {
 	data, err := readSource(filename, src)
 	if err != nil {
 		return nil, err
 	}
 	return &scanner{
-		complete:  data,
-		rest:      data,
-		pos:       Position{file: &filename, Line: 1, Col: 1},
-		indentstk: make([]int, 1, 10), // []int{0} + spare capacity
-		lineStart: true,
+		complete:     data,
+		rest:         data,
+		pos:          Position{file: &filename, Line: 1, Col: 1},
+		indentstk:    make([]int, 1, 10), // []int{0} + spare capacity
+		lineStart:    true,
+		keepComments: keepComments,
 	}, nil
 }
 
@@ -474,17 +476,21 @@ start:
 
 	// comment
 	if c == '#' {
-		sc.startToken(val)
+		if keepComments {
+			sc.startToken(val)
+		}
 		// Consume up to newline (included).
 		for c != 0 && c != '\n' {
 			sc.readRune()
 			c = sc.peekRune()
 		}
-		sc.endToken(val)
-		if sc.blank {
-			return LINE_COMMENT
-		} else {
-			return SUFFIX_COMMENT
+		if keepComments {
+			sc.endToken(val)
+			if sc.blank {
+				return LINE_COMMENT
+			} else {
+				return SUFFIX_COMMENT
+			}
 		}
 	}
 
