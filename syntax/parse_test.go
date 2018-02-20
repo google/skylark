@@ -258,7 +258,6 @@ func stripPos(err error) string {
 func treeString(n syntax.Node) string {
 	var buf bytes.Buffer
 	writeTree(&buf, reflect.ValueOf(n))
-	// Skip comments fields
 	return buf.String()
 }
 

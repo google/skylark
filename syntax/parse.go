@@ -16,10 +16,10 @@ import "log"
 // Enable this flag to print the token stream and log.Fatal on the first error.
 const debug = false
 
-type Mode uint
+type Mode uint // A Mode value is a set of flags (or 0) that controls optional parser functionality.
 
 const (
-	RetainComments Mode = 1 << iota
+	RetainComments Mode = 1 << iota // retain comments in AST; see Node.Comments
 )
 
 // Parse parses the input data and returns the corresponding parse tree.
@@ -51,7 +51,8 @@ func Parse(filename string, src interface{}, mode Mode) (f *File, err error) {
 // ParseExpr parses a Skylark expression.
 // See Parse for explanation of parameters.
 func ParseExpr(filename string, src interface{}, mode Mode) (expr Expr, err error) {
-	in, err := newScanner(filename, src, mode&RetainComments != 0)
+	// TODO(laurentlb): support RetainComments
+	in, err := newScanner(filename, src, false)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,9 @@ func ParseExpr(filename string, src interface{}, mode Mode) (expr Expr, err erro
 	if p.tok != EOF {
 		p.in.errorf(p.in.pos, "got %#v after expression, want EOF", p.tok)
 	}
-
+	if mode&RetainComments != 0 {
+		p.assignComments(expr)
+	}
 	return expr, nil
 }
 
@@ -949,18 +952,18 @@ func terminatesExprList(tok Token) bool {
 }
 
 // Comment assignment.
-// We build two lists of all subexpressions, preorder and postorder.
-// The preorder list is ordered by start location, with outer expressions first.
-// The postorder list is ordered by end location, with outer expressions last.
+// We build two lists of all subnodes, preorder and postorder.
+// The preorder list is ordered by start location, with outer nodes first.
+// The postorder list is ordered by end location, with outer nodes last.
 // We use the preorder list to assign each whole-line comment to the syntax
 // immediately following it, and we use the postorder list to assign each
 // end-of-line comment to the syntax immediately preceding it.
 
 // flattenAST returns the list of AST nodes, both in prefix order and in postfix
 // order.
-func flattenAST(f *File) (pre, post []Node) {
+func flattenAST(root Node) (pre, post []Node) {
 	stack := []Node{}
-	Walk(f, func(n Node) bool {
+	Walk(root, func(n Node) bool {
 		if n != nil {
 			pre = append(pre, n)
 			stack = append(stack, n)
@@ -974,8 +977,8 @@ func flattenAST(f *File) (pre, post []Node) {
 }
 
 // assignComments attaches comments to nearby syntax.
-func (p *parser) assignComments(f *File) {
-	pre, post := flattenAST(f)
+func (p *parser) assignComments(n Node) {
+	pre, post := flattenAST(n)
 
 	// Split into whole-line comments and suffix comments.
 	var line, suffix []Comment
@@ -990,8 +993,6 @@ func (p *parser) assignComments(f *File) {
 	// Assign line comments to syntax immediately following.
 	for _, x := range pre {
 		start, _ := x.Span()
-		x.AllocComments()
-		xcom := x.Comments()
 
 		switch x.(type) {
 		case *File:
@@ -999,14 +1000,17 @@ func (p *parser) assignComments(f *File) {
 		}
 
 		for len(line) > 0 && !start.isBefore(line[0].Start) {
-			xcom.Before = append(xcom.Before, line[0])
+			x.AllocComments()
+			x.Comments().Before = append(x.Comments().Before, line[0])
 			line = line[1:]
 		}
 	}
 
 	// Remaining line comments go at end of file.
-	f.AllocComments()
-	f.Comments().After = append(f.Comments().After, line...)
+	if len(line) > 0 {
+		n.AllocComments()
+		n.Comments().After = append(n.Comments().After, line...)
+	}
 
 	// Assign suffix comments to syntax immediately before.
 	for i := len(post) - 1; i >= 0; i-- {
@@ -1019,22 +1023,25 @@ func (p *parser) assignComments(f *File) {
 		}
 
 		_, end := x.Span()
-		xcom := x.Comments()
 		for len(suffix) > 0 && end.isBefore(suffix[len(suffix)-1].Start) {
-			xcom.Suffix = append(xcom.Suffix, suffix[len(suffix)-1])
+			x.AllocComments()
+			x.Comments().Suffix = append(x.Comments().Suffix, suffix[len(suffix)-1])
 			suffix = suffix[:len(suffix)-1]
 		}
 	}
 
 	// We assigned suffix comments in reverse.
 	// If multiple suffix comments were appended to the same
-	// expression node, they are now in reverse. Fix that.
+	// node, they are now in reverse. Fix that.
 	for _, x := range post {
 		reverseComments(x.Comments().Suffix)
 	}
 
 	// Remaining suffix comments go at beginning of file.
-	f.Comments().Before = append(f.Comments().Before, suffix...)
+	if len(suffix) > 0 {
+		n.AllocComments()
+		n.Comments().Before = append(n.Comments().Before, suffix...)
+	}
 }
 
 // reverseComments reverses the []Comment list.

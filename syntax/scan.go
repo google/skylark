@@ -213,7 +213,7 @@ type scanner struct {
 	indentstk    []int     // stack of indentation levels
 	dents        int       // number of saved INDENT (>0) or OUTDENT (<0) tokens to return
 	lineStart    bool      // after NEWLINE; convert spaces to indentation tokens
-	keepComments bool      // if false, do not return comments tokens
+	keepComments bool      // /accumulate comments in slice
 	comments     []Comment // list of comments seen in the file (if keepComments was true)
 }
 
@@ -452,7 +452,6 @@ start:
 	if sc.dents != 0 {
 		sc.startToken(val)
 		sc.endToken(val)
-		blank = false
 		if sc.dents < 0 {
 			sc.dents++
 			return OUTDENT
@@ -494,14 +493,12 @@ start:
 		if blank || sc.depth > 0 {
 			// Ignore blank lines, or newlines within expressions (common case).
 			sc.readRune()
-			blank = false
 			goto start
 		}
 		// At top-level (not in an expression).
 		sc.startToken(val)
 		sc.readRune()
 		val.raw = "\n"
-		blank = false
 		return NEWLINE
 	}
 
