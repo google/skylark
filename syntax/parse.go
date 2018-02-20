@@ -75,10 +75,9 @@ func ParseExpr(filename string, src interface{}, mode Mode) (expr Expr, err erro
 }
 
 type parser struct {
-	in       *scanner
-	tok      Token
-	tokval   tokenValue
-	comments []Comment
+	in     *scanner
+	tok    Token
+	tokval tokenValue
 }
 
 // nextToken advances the scanner and returns the position of the
@@ -86,12 +85,6 @@ type parser struct {
 func (p *parser) nextToken() Position {
 	oldpos := p.tokval.pos
 	p.tok = p.in.nextToken(&p.tokval)
-	// save comments
-	for p.tok == LINE_COMMENT || p.tok == SUFFIX_COMMENT {
-		suffix := p.tok == SUFFIX_COMMENT
-		p.comments = append(p.comments, Comment{p.tokval.pos, p.tokval.raw, suffix})
-		p.tok = p.in.nextToken(&p.tokval)
-	}
 	// enable to see the token stream
 	if debug {
 		log.Printf("nextToken: %-20s%+v\n", p.tok, p.tokval.pos)
@@ -986,7 +979,7 @@ func (p *parser) assignComments(f *File) {
 
 	// Split into whole-line comments and suffix comments.
 	var line, suffix []Comment
-	for _, com := range p.comments {
+	for _, com := range p.in.comments {
 		if com.Suffix {
 			suffix = append(suffix, com)
 		} else {

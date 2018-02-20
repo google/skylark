@@ -10,8 +10,13 @@ type Node interface {
 	// Span returns the start and end position of the expression.
 	Span() (start, end Position)
 
-	AllocComments()
+	// Comments returns the comments associated with this node.
+	// It returns nil if RetainComments was not specified during parsing.
 	Comments() *Comments
+
+	// AllocComments allocates a new Comments node if there was none.
+	// This makes possible to add new comments using Comments() method.
+	AllocComments()
 }
 
 // A Comment represents a single # comment.

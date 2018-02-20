@@ -28,8 +28,6 @@ const (
 	NEWLINE
 	INDENT
 	OUTDENT
-	LINE_COMMENT
-	SUFFIX_COMMENT
 
 	// Tokens with values
 	IDENT  // x
@@ -104,65 +102,63 @@ func (tok Token) GoString() string {
 }
 
 var tokenNames = [...]string{
-	ILLEGAL:        "illegal token",
-	EOF:            "end of file",
-	NEWLINE:        "newline",
-	INDENT:         "indent",
-	OUTDENT:        "outdent",
-	LINE_COMMENT:   "line comment",
-	SUFFIX_COMMENT: "suffix comment",
-	IDENT:          "identifier",
-	INT:            "int literal",
-	FLOAT:          "float literal",
-	STRING:         "string literal",
-	PLUS:           "+",
-	MINUS:          "-",
-	STAR:           "*",
-	SLASH:          "/",
-	SLASHSLASH:     "//",
-	PERCENT:        "%",
-	AMP:            "&",
-	PIPE:           "|",
-	DOT:            ".",
-	COMMA:          ",",
-	EQ:             "=",
-	SEMI:           ";",
-	COLON:          ":",
-	LPAREN:         "(",
-	RPAREN:         ")",
-	LBRACK:         "[",
-	RBRACK:         "]",
-	LBRACE:         "{",
-	RBRACE:         "]",
-	LT:             "<",
-	GT:             ">",
-	GE:             ">=",
-	LE:             "<=",
-	EQL:            "==",
-	NEQ:            "!=",
-	PLUS_EQ:        "+=",
-	MINUS_EQ:       "-=",
-	STAR_EQ:        "*=",
-	SLASH_EQ:       "/=",
-	SLASHSLASH_EQ:  "//=",
-	PERCENT_EQ:     "%=",
-	STARSTAR:       "**",
-	AND:            "and",
-	BREAK:          "break",
-	CONTINUE:       "continue",
-	DEF:            "def",
-	ELIF:           "elif",
-	ELSE:           "else",
-	FOR:            "for",
-	IF:             "if",
-	IN:             "in",
-	LAMBDA:         "lambda",
-	LOAD:           "load",
-	NOT:            "not",
-	NOT_IN:         "not in",
-	OR:             "or",
-	PASS:           "pass",
-	RETURN:         "return",
+	ILLEGAL:       "illegal token",
+	EOF:           "end of file",
+	NEWLINE:       "newline",
+	INDENT:        "indent",
+	OUTDENT:       "outdent",
+	IDENT:         "identifier",
+	INT:           "int literal",
+	FLOAT:         "float literal",
+	STRING:        "string literal",
+	PLUS:          "+",
+	MINUS:         "-",
+	STAR:          "*",
+	SLASH:         "/",
+	SLASHSLASH:    "//",
+	PERCENT:       "%",
+	AMP:           "&",
+	PIPE:          "|",
+	DOT:           ".",
+	COMMA:         ",",
+	EQ:            "=",
+	SEMI:          ";",
+	COLON:         ":",
+	LPAREN:        "(",
+	RPAREN:        ")",
+	LBRACK:        "[",
+	RBRACK:        "]",
+	LBRACE:        "{",
+	RBRACE:        "]",
+	LT:            "<",
+	GT:            ">",
+	GE:            ">=",
+	LE:            "<=",
+	EQL:           "==",
+	NEQ:           "!=",
+	PLUS_EQ:       "+=",
+	MINUS_EQ:      "-=",
+	STAR_EQ:       "*=",
+	SLASH_EQ:      "/=",
+	SLASHSLASH_EQ: "//=",
+	PERCENT_EQ:    "%=",
+	STARSTAR:      "**",
+	AND:           "and",
+	BREAK:         "break",
+	CONTINUE:      "continue",
+	DEF:           "def",
+	ELIF:          "elif",
+	ELSE:          "else",
+	FOR:           "for",
+	IF:            "if",
+	IN:            "in",
+	LAMBDA:        "lambda",
+	LOAD:          "load",
+	NOT:           "not",
+	NOT_IN:        "not in",
+	OR:            "or",
+	PASS:          "pass",
+	RETURN:        "return",
 }
 
 // A Position describes the location of a rune of input.
@@ -209,16 +205,16 @@ func (p Position) isBefore(q Position) bool {
 
 // An scanner represents a single input file being parsed.
 type scanner struct {
-	complete     []byte   // entire input
-	rest         []byte   // rest of input
-	token        []byte   // token being scanned
-	pos          Position // current input position
-	depth        int      // nesting of [ ] { } ( )
-	indentstk    []int    // stack of indentation levels
-	dents        int      // number of saved INDENT (>0) or OUTDENT (<0) tokens to return
-	lineStart    bool     // after NEWLINE; convert spaces to indentation tokens
-	blank        bool     // true when the line is blank
-	keepComments bool     // if false, do not return comments tokens
+	complete     []byte    // entire input
+	rest         []byte    // rest of input
+	token        []byte    // token being scanned
+	pos          Position  // current input position
+	depth        int       // nesting of [ ] { } ( )
+	indentstk    []int     // stack of indentation levels
+	dents        int       // number of saved INDENT (>0) or OUTDENT (<0) tokens to return
+	lineStart    bool      // after NEWLINE; convert spaces to indentation tokens
+	keepComments bool      // if false, do not return comments tokens
+	comments     []Comment // list of comments seen in the file (if keepComments was true)
 }
 
 func newScanner(filename string, src interface{}, keepComments bool) (*scanner, error) {
@@ -408,6 +404,7 @@ start:
 	var c rune
 
 	// Deal with leading spaces and indentation.
+	blank := false
 	savedLineStart := sc.lineStart
 	if sc.lineStart {
 		sc.lineStart = false
@@ -427,12 +424,12 @@ start:
 		}
 		// The third clause is "trailing spaces without newline at EOF".
 		if c == '#' || c == '\n' || c == 0 && col > 0 {
-			sc.blank = true
+			blank = true
 		}
 
 		// Compute indentation level for non-blank lines not
 		// inside an expression.  This is not the common case.
-		if !sc.blank && sc.depth == 0 {
+		if !blank && sc.depth == 0 {
 			cur := sc.indentstk[len(sc.indentstk)-1]
 			if col > cur {
 				// indent
@@ -455,7 +452,7 @@ start:
 	if sc.dents != 0 {
 		sc.startToken(val)
 		sc.endToken(val)
-		sc.blank = false
+		blank = false
 		if sc.dents < 0 {
 			sc.dents++
 			return OUTDENT
@@ -486,32 +483,27 @@ start:
 		}
 		if sc.keepComments {
 			sc.endToken(val)
-			if sc.blank {
-				return LINE_COMMENT
-			} else {
-				return SUFFIX_COMMENT
-			}
+			is_suffix := !blank
+			sc.comments = append(sc.comments, Comment{val.pos, val.raw, is_suffix})
 		}
 	}
 
 	// newline
 	if c == '\n' {
 		sc.lineStart = true
-		if sc.blank || sc.depth > 0 {
+		if blank || sc.depth > 0 {
 			// Ignore blank lines, or newlines within expressions (common case).
 			sc.readRune()
-			sc.blank = false
+			blank = false
 			goto start
 		}
 		// At top-level (not in an expression).
 		sc.startToken(val)
 		sc.readRune()
 		val.raw = "\n"
-		sc.blank = false
+		blank = false
 		return NEWLINE
 	}
-
-	sc.blank = false
 
 	// end of file
 	if c == 0 {
