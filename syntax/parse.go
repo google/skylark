@@ -994,26 +994,28 @@ func (p *parser) assignComments(f *File) {
 		}
 	}
 
-	// // Assign line comments to syntax immediately following.
+	// Assign line comments to syntax immediately following.
 	for _, x := range pre {
 		start, _ := x.Span()
-		xcom := x.Comment()
+		x.AllocComments()
+		xcom := x.Comments()
 
 		switch x.(type) {
 		case *File:
 			continue
 		}
 
-		for len(line) > 0 && !start.IsBefore(line[0].Start) {
+		for len(line) > 0 && !start.isBefore(line[0].Start) {
 			xcom.Before = append(xcom.Before, line[0])
 			line = line[1:]
 		}
 	}
 
 	// Remaining line comments go at end of file.
-	f.After = append(f.After, line...)
+	f.AllocComments()
+	f.Comments().After = append(f.Comments().After, line...)
 
-	// // Assign suffix comments to syntax immediately before.
+	// Assign suffix comments to syntax immediately before.
 	for i := len(post) - 1; i >= 0; i-- {
 		x := post[i]
 
@@ -1024,8 +1026,8 @@ func (p *parser) assignComments(f *File) {
 		}
 
 		_, end := x.Span()
-		xcom := x.Comment()
-		for len(suffix) > 0 && end.IsBefore(suffix[len(suffix)-1].Start) {
+		xcom := x.Comments()
+		for len(suffix) > 0 && end.isBefore(suffix[len(suffix)-1].Start) {
 			xcom.Suffix = append(xcom.Suffix, suffix[len(suffix)-1])
 			suffix = suffix[:len(suffix)-1]
 		}
@@ -1035,11 +1037,11 @@ func (p *parser) assignComments(f *File) {
 	// If multiple suffix comments were appended to the same
 	// expression node, they are now in reverse. Fix that.
 	for _, x := range post {
-		reverseComments(x.Comment().Suffix)
+		reverseComments(x.Comments().Suffix)
 	}
 
 	// Remaining suffix comments go at beginning of file.
-	f.Before = append(f.Before, suffix...)
+	f.Comments().Before = append(f.Comments().Before, suffix...)
 }
 
 // reverseComments reverses the []Comment list.

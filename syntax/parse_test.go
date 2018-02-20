@@ -292,8 +292,7 @@ func writeTree(out *bytes.Buffer, x reflect.Value) {
 				continue // skip positions
 			}
 			name := x.Type().Field(i).Name
-			//strings.Replace(, " Comments=(Comments)", "", -1)
-			if name == "Comments" {
+			if name == "CommentsRef" {
 				continue // skip comments fields
 			}
 			if f.Type() == reflect.TypeOf(syntax.Token(0)) {

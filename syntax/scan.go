@@ -200,11 +200,11 @@ func (p Position) String() string {
 	return fmt.Sprintf("%s:%d:%d", p.Filename(), p.Line, p.Col)
 }
 
-func (p Position) IsBefore(p2 Position) bool {
-	if p.Line != p2.Line {
-		return p.Line < p2.Line
+func (p Position) isBefore(q Position) bool {
+	if p.Line != q.Line {
+		return p.Line < q.Line
 	}
-	return p.Col < p2.Col
+	return p.Col < q.Col
 }
 
 // An scanner represents a single input file being parsed.
