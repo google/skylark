@@ -1016,16 +1016,10 @@ func (p *parser) assignComments(n Node) {
 		}
 
 		_, end := x.Span()
-		for len(suffix) > 0 && end.isBefore(suffix[len(suffix)-1].Start) {
+		if len(suffix) > 0 && end.isBefore(suffix[len(suffix)-1].Start) {
 			x.AllocComments()
 			x.Comments().Suffix = append(x.Comments().Suffix, suffix[len(suffix)-1])
 			suffix = suffix[:len(suffix)-1]
 		}
-	}
-
-	// Remaining suffix comments go at beginning of file.
-	if len(suffix) > 0 {
-		n.AllocComments()
-		n.Comments().Before = append(n.Comments().Before, suffix...)
 	}
 }
