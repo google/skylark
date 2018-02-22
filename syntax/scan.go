@@ -205,16 +205,17 @@ func (p Position) isBefore(q Position) bool {
 
 // An scanner represents a single input file being parsed.
 type scanner struct {
-	complete     []byte    // entire input
-	rest         []byte    // rest of input
-	token        []byte    // token being scanned
-	pos          Position  // current input position
-	depth        int       // nesting of [ ] { } ( )
-	indentstk    []int     // stack of indentation levels
-	dents        int       // number of saved INDENT (>0) or OUTDENT (<0) tokens to return
-	lineStart    bool      // after NEWLINE; convert spaces to indentation tokens
-	keepComments bool      // /accumulate comments in slice
-	comments     []Comment // list of comments seen in the file (if keepComments was true)
+	complete       []byte    // entire input
+	rest           []byte    // rest of input
+	token          []byte    // token being scanned
+	pos            Position  // current input position
+	depth          int       // nesting of [ ] { } ( )
+	indentstk      []int     // stack of indentation levels
+	dents          int       // number of saved INDENT (>0) or OUTDENT (<0) tokens to return
+	lineStart      bool      // after NEWLINE; convert spaces to indentation tokens
+	keepComments   bool      // /accumulate comments in slice
+	lineComments   []Comment // list of full line comments (if keepComments was true)
+	suffixComments []Comment // list of suffix comments (if keepComments was true)
 }
 
 func newScanner(filename string, src interface{}, keepComments bool) (*scanner, error) {
@@ -482,8 +483,11 @@ start:
 		}
 		if sc.keepComments {
 			sc.endToken(val)
-			is_suffix := !blank
-			sc.comments = append(sc.comments, Comment{val.pos, val.raw, is_suffix})
+			if blank {
+				sc.lineComments = append(sc.lineComments, Comment{val.pos, val.raw})
+			} else {
+				sc.suffixComments = append(sc.suffixComments, Comment{val.pos, val.raw})
+			}
 		}
 	}
 

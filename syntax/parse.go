@@ -16,7 +16,8 @@ import "log"
 // Enable this flag to print the token stream and log.Fatal on the first error.
 const debug = false
 
-type Mode uint // A Mode value is a set of flags (or 0) that controls optional parser functionality.
+// A Mode value is a set of flags (or 0) that controls optional parser functionality.
+type Mode uint
 
 const (
 	RetainComments Mode = 1 << iota // retain comments in AST; see Node.Comments
@@ -980,17 +981,8 @@ func flattenAST(root Node) (pre, post []Node) {
 func (p *parser) assignComments(n Node) {
 	pre, post := flattenAST(n)
 
-	// Split into whole-line comments and suffix comments.
-	var line, suffix []Comment
-	for _, com := range p.in.comments {
-		if com.Suffix {
-			suffix = append(suffix, com)
-		} else {
-			line = append(line, com)
-		}
-	}
-
 	// Assign line comments to syntax immediately following.
+	line := p.in.lineComments
 	for _, x := range pre {
 		start, _ := x.Span()
 
@@ -1013,6 +1005,7 @@ func (p *parser) assignComments(n Node) {
 	}
 
 	// Assign suffix comments to syntax immediately before.
+	suffix := p.in.suffixComments
 	for i := len(post) - 1; i >= 0; i-- {
 		x := post[i]
 
@@ -1030,23 +1023,9 @@ func (p *parser) assignComments(n Node) {
 		}
 	}
 
-	// We assigned suffix comments in reverse.
-	// If multiple suffix comments were appended to the same
-	// node, they are now in reverse. Fix that.
-	for _, x := range post {
-		reverseComments(x.Comments().Suffix)
-	}
-
 	// Remaining suffix comments go at beginning of file.
 	if len(suffix) > 0 {
 		n.AllocComments()
 		n.Comments().Before = append(n.Comments().Before, suffix...)
-	}
-}
-
-// reverseComments reverses the []Comment list.
-func reverseComments(list []Comment) {
-	for i, j := 0, len(list)-1; i < j; i, j = i+1, j-1 {
-		list[i], list[j] = list[j], list[i]
 	}
 }
