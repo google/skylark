@@ -43,17 +43,14 @@ func Parse(filename string, src interface{}, mode Mode) (f *File, err error) {
 	if f != nil {
 		f.Path = filename
 	}
-	if mode&RetainComments != 0 {
-		p.assignComments(f)
-	}
+	p.assignComments(f)
 	return f, nil
 }
 
 // ParseExpr parses a Skylark expression.
 // See Parse for explanation of parameters.
 func ParseExpr(filename string, src interface{}, mode Mode) (expr Expr, err error) {
-	// TODO(laurentlb): support RetainComments
-	in, err := newScanner(filename, src, false)
+	in, err := newScanner(filename, src, mode&RetainComments != 0)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +69,7 @@ func ParseExpr(filename string, src interface{}, mode Mode) (expr Expr, err erro
 	if p.tok != EOF {
 		p.in.errorf(p.in.pos, "got %#v after expression, want EOF", p.tok)
 	}
-	if mode&RetainComments != 0 {
-		p.assignComments(expr)
-	}
+	p.assignComments(expr)
 	return expr, nil
 }
 
@@ -979,6 +974,11 @@ func flattenAST(root Node) (pre, post []Node) {
 
 // assignComments attaches comments to nearby syntax.
 func (p *parser) assignComments(n Node) {
+	// Leave early if there are no comments
+	if len(p.in.lineComments)+len(p.in.suffixComments) == 0 {
+		return
+	}
+
 	pre, post := flattenAST(n)
 
 	// Assign line comments to syntax immediately following.

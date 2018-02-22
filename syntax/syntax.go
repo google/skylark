@@ -29,7 +29,7 @@ type Comment struct {
 // Comments collects the comments associated with an expression.
 type Comments struct {
 	Before []Comment // whole-line comments before this expression
-	Suffix []Comment // end-of-line comments after this expression
+	Suffix []Comment // end-of-line comments after this expression (up to 1)
 
 	// For top-level expressions only, After lists whole-line
 	// comments following the expression.

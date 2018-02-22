@@ -213,9 +213,9 @@ type scanner struct {
 	indentstk      []int     // stack of indentation levels
 	dents          int       // number of saved INDENT (>0) or OUTDENT (<0) tokens to return
 	lineStart      bool      // after NEWLINE; convert spaces to indentation tokens
-	keepComments   bool      // /accumulate comments in slice
-	lineComments   []Comment // list of full line comments (if keepComments was true)
-	suffixComments []Comment // list of suffix comments (if keepComments was true)
+	keepComments   bool      // accumulate comments in slice
+	lineComments   []Comment // list of full line comments (if keepComments)
+	suffixComments []Comment // list of suffix comments (if keepComments)
 }
 
 func newScanner(filename string, src interface{}, keepComments bool) (*scanner, error) {
