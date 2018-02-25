@@ -82,7 +82,7 @@ assert.eq(int("10011", base=2), 19)
 assert.eq(int("-10011", base=2), -19)
 assert.eq(int("123", 8), 83)
 assert.eq(int("-123", 8), -83)
-assert.eq(int("0123", 8), 83) # redundant zeros permittedd
+assert.eq(int("0123", 8), 83) # redundant zeros permitted
 assert.eq(int("-0123", 8), -83)
 assert.eq(int("00123", 8), 83)
 assert.eq(int("-00123", 8), -83)
