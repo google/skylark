@@ -21,7 +21,7 @@ package resolve
 // As an optimization, the resolver classifies each predeclared name as
 // either universal (e.g. None, len) or per-module (e.g. glob in Bazel's
 // build language), enabling the evaluator to share the representation
-// of the universal environment names across all modules.
+// of the universal environment across all modules.
 //
 // The lexical environment is a tree of blocks with the module block at
 // its root.  The module's child blocks may be of two kinds: functions
@@ -40,7 +40,7 @@ package resolve
 // As we finish resolving each function, we inspect all the uses within
 // that function and discard ones that were found to be local. The
 // remaining ones must be either free (local to some lexically enclosing
-// function), or global (including predeclared), but we cannot tell
+// function), or nonlocal (global or predeclared), but we cannot tell
 // which until we have finished inspecting the outermost enclosing
 // function. At that point, we can distinguish local from global names
 // (and this is when Python would compute free variables).

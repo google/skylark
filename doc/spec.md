@@ -2739,7 +2739,7 @@ These names are not reserved words so Skylark programs are free to
 redefine them in a smaller block such as a function body or even at
 the top level of a module.  However, doing so may be confusing to the
 reader.  Nonetheless, this rule permits names to be added to the
-upredeclared block in later versions of the language (or
+redeclared block in later versions of the language (or
 application-specific dialect) without breaking existing programs.
 
 

@@ -163,7 +163,6 @@ func rep(rl *readline.Instance, thread *skylark.Thread, globals skylark.StringDi
 }
 
 // execFileNoFreeze is skylark.ExecFile without globals.Freeze().
-// The global names from the previous call become the predeclared names of this call.
 func execFileNoFreeze(thread *skylark.Thread, src interface{}, globals skylark.StringDict) error {
 	// parse
 	f, err := syntax.Parse("<stdin>", src, 0)
@@ -177,6 +176,7 @@ func execFileNoFreeze(thread *skylark.Thread, src interface{}, globals skylark.S
 	}
 
 	// execute
+	// The global names from the previous call become the predeclared names of this call.
 	globalsArray := make([]skylark.Value, len(f.Globals))
 	fr := thread.Push(globals, globalsArray, len(f.Locals))
 	err = fr.ExecStmts(f.Stmts)
