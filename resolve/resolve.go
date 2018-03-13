@@ -97,8 +97,13 @@ var (
 // The isPredeclared and isUniversal predicates report whether a name is
 // a pre-declared identifier (visible in the current module) or a
 // universal identifier (visible in every module).
-// Typical values are predeclared.Has and Universe.Has, respectively, where
-// predeclared is the module's StringDict of predeclared names.
+// Clients should typically pass predeclared.Has for the first and
+// skylark.Universe.Has for the second, where predeclared is the
+// module's StringDict of predeclared names and skylark.Universe is the
+// standard set of built-ins.
+// The isUniverse predicate is supplied a parameter to avoid a cyclic
+// dependency upon skylark.Universe, not because users should ever need
+// to redefine it.
 func File(file *syntax.File, isPredeclared, isUniversal func(name string) bool) error {
 	r := newResolver(isPredeclared, isUniversal)
 	r.stmts(file.Stmts)
@@ -122,11 +127,7 @@ func File(file *syntax.File, isPredeclared, isUniversal func(name string) bool) 
 // Expr resolves the specified expression.
 // It returns the local variables bound within the expression.
 //
-// The isPredeclared and isUniversal predicates report whether a name is
-// a pre-declared identifier (visible in the current module) or a
-// universal identifier (visible in every module).
-// Typical values are predeclared.Has and Universe.Has, respectively, where
-// predeclared is the module's StringDict of predeclared names.
+// The isPredeclared and isUniversal predicates behave as for the File function.
 func Expr(expr syntax.Expr, isPredeclared, isUniversal func(name string) bool) ([]*syntax.Ident, error) {
 	r := newResolver(isPredeclared, isUniversal)
 	r.expr(expr)
