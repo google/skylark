@@ -15,7 +15,7 @@ import (
 )
 
 func TestResolve(t *testing.T) {
-	filename := skylarktest.DataFile("skylark/resolve", "testdata/resolve.sky")
+	filename := skylarktest.DataFile("resolve", "testdata/resolve.sky")
 	for _, chunk := range chunkedfile.Read(filename, t) {
 		f, err := syntax.Parse(filename, chunk.Source, 0)
 		if err != nil {

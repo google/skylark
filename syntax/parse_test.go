@@ -332,7 +332,7 @@ func writeTree(out *bytes.Buffer, x reflect.Value) {
 }
 
 func TestParseErrors(t *testing.T) {
-	filename := skylarktest.DataFile("skylark/syntax", "testdata/errors.sky")
+	filename := skylarktest.DataFile("syntax", "testdata/errors.sky")
 	for _, chunk := range chunkedfile.Read(filename, t) {
 		_, err := syntax.Parse(filename, chunk.Source, 0)
 		switch err := err.(type) {

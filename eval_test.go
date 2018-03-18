@@ -92,7 +92,7 @@ func TestEvalExpr(t *testing.T) {
 }
 
 func TestExecFile(t *testing.T) {
-	testdata := skylarktest.DataFile("skylark", ".")
+	testdata := skylarktest.DataFile("", ".")
 	thread := &skylark.Thread{Load: load}
 	skylarktest.SetReporter(thread, t)
 	for _, file := range []string{
@@ -342,7 +342,7 @@ f()
 }
 
 func Benchmark(b *testing.B) {
-	testdata := skylarktest.DataFile("skylark", ".")
+	testdata := skylarktest.DataFile("", ".")
 	thread := new(skylark.Thread)
 	for _, file := range []string{
 		"testdata/benchmark.sky",
