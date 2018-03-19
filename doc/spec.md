@@ -1935,7 +1935,7 @@ The characters following `%` in each conversion determine which
 argument it uses and how to convert it to a string.
 
 Each `%` character marks the start of a conversion specifier, unless
-it is immediately followed by another `%`, in which cases both
+it is immediately followed by another `%`, in which case both
 characters together denote a literal percent sign.
 
 If the `"%"` is immediately followed by `"(key)"`, the parenthesized
