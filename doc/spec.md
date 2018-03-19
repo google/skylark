@@ -2896,8 +2896,6 @@ If x is a string, it is interpreted as a sequence of digits in the
 specified base, decimal by default.
 If `base` is zero, x is interpreted like an integer literal, the base
 being inferred from an optional base prefix such as `0b`, `0o`, or `0x`.
-The string may specify an arbitrarily large integer,
-whereas true integer literals are restricted to 64 bits.
 
 ### len
 
