@@ -479,7 +479,8 @@ func (fn *Function) Truth() Bool           { return true }
 //
 // We do not expose the syntax tree; future versions of Function may dispense with it.
 
-func (fn *Function) NumParams() int { return len(fn.syntax.Params) }
+func (fn *Function) Position() syntax.Position { return fn.position }
+func (fn *Function) NumParams() int            { return len(fn.syntax.Params) }
 func (fn *Function) Param(i int) (string, syntax.Position) {
 	id := fn.syntax.Locals[i]
 	return id.Name, id.NamePos
