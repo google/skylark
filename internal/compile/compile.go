@@ -1313,7 +1313,7 @@ func (fcomp *fcomp) plus(e *syntax.BinaryExpr) {
 	// A tree (((a+b)+c)+d) becomes summmands=[a +b +c +d].
 	args := make([]summand, 0, 2) // common case: 2 operands
 	for plus := e; ; {
-		args = append(args, summand{plus.Y, plus.OpPos})
+		args = append(args, summand{unparen(plus.Y), plus.OpPos})
 		left := unparen(plus.X)
 		x, ok := left.(*syntax.BinaryExpr)
 		if !ok || x.Op != syntax.PLUS {

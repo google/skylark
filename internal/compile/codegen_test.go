@@ -46,17 +46,12 @@ func TestPlusFolding(t *testing.T) {
 		{
 			// tuple folding
 			`() + (1,) + (2, 3)`,
-			`maketuple<0>; ` +
-				`int 1; maketuple<1>; plus; ` +
-				`int 2; int 3; maketuple<2>; plus; ` +
-				`return`,
+			`int 1; int 2; int 3; maketuple<3>; return`,
 		},
 		{
 			// tuple folding with variable
 			`() + (1,) + x + (2, 3)`,
-			`maketuple<0>; ` +
-				`int 1; maketuple<1>; plus; ` +
-				`predeclared x; plus; ` +
+			`int 1; maketuple<1>; predeclared x; plus; ` +
 				`int 2; int 3; maketuple<2>; plus; ` +
 				`return`,
 		},
