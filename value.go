@@ -185,9 +185,9 @@ type Indexable interface {
 // This is a separate interface for backwards-compatibility.
 type Sliceable interface {
 	Indexable
-	// For positive strides (step > 0), start < end.
-	// For negative strides (step < 0), start > end.
-	// The implementation of Slice should treat start as inclusive end as non-inclusive.
+	// For positive strides (step > 0), 0 <= start <= end <= n.
+	// For negative strides (step < 0), -1 <= end <= start < n.
+	// The caller must ensure that the start and end indices are valid.
 	Slice(start, end, step int) Value
 }
 

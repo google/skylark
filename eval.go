@@ -805,11 +805,12 @@ func Call(thread *Thread, fn Value, args Tuple, kwargs []Tuple) (Value, error) {
 }
 
 func slice(x, lo, hi, step_ Value) (Value, error) {
-	n := Len(x)
-	if n < 0 {
-		n = 0 // n < 0 => invalid operand; will be rejected by type switch
+	sliceable, ok := x.(Sliceable)
+	if !ok {
+		return nil, fmt.Errorf("invalid slice operand %s", x.Type())
 	}
 
+	n := sliceable.Len()
 	step := 1
 	if step_ != None {
 		var err error
@@ -863,10 +864,6 @@ func slice(x, lo, hi, step_ Value) (Value, error) {
 		}
 	}
 
-	sliceable, ok := x.(Sliceable)
-	if !ok {
-		return nil, fmt.Errorf("invalid slice operand %s", x.Type())
-	}
 	return sliceable.Slice(start, end, step), nil
 }
 
