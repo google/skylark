@@ -1847,10 +1847,21 @@ func string_rstrip(fnname string, recv Value, args Tuple, kwargs []Tuple) (Value
 // https://github.com/google/skylark/blob/master/doc/spec.md#string·startswith
 // https://github.com/google/skylark/blob/master/doc/spec.md#string·endswith
 func string_startswith(fnname string, recv_ Value, args Tuple, kwargs []Tuple) (Value, error) {
-	recv := string(recv_.(String))
 	var x Value
-	if err := UnpackPositionalArgs(fnname, args, kwargs, 1, &x); err != nil {
+	var start, end Value = None, None
+	if err := UnpackPositionalArgs(fnname, args, kwargs, 1, &x, &start, &end); err != nil {
 		return nil, err
+	}
+
+	// compute effective substring.
+	s := string(recv_.(String))
+	if start, end, err := indices(start, end, len(s)); err != nil {
+		return nil, err
+	} else {
+		if end < start {
+			end = start // => empty result
+		}
+		s = s[start:end]
 	}
 
 	f := strings.HasPrefix
@@ -1866,13 +1877,13 @@ func string_startswith(fnname string, recv_ Value, args Tuple, kwargs []Tuple) (
 				return nil, fmt.Errorf("%s: want string, got %s, for element %d",
 					fnname, x.Type(), i)
 			}
-			if f(recv, prefix) {
+			if f(s, prefix) {
 				return True, nil
 			}
 		}
 		return False, nil
 	case String:
-		return Bool(f(recv, string(x))), nil
+		return Bool(f(s, string(x))), nil
 	}
 	return nil, fmt.Errorf("%s: got %s, want string or tuple of string", fnname, x.Type())
 }
