@@ -3515,7 +3515,7 @@ They are interpreted according to Skylark's [indexing conventions](#indexing).
 ```
 
 The `suffix` argument may be a tuple of strings, in which case the
-function reports whether any one of them was a suffix of S.
+function reports whether any one of them is a suffix of S.
 
 ```python
 'foo.cc'.endswith(('.cc', '.h'))         # True
@@ -3893,7 +3893,7 @@ the final element does not necessarily end with a line terminator.
 ```
 
 The `prefix` argument may be a tuple of strings, in which case the
-function reports whether any one of them was a prefix of S.
+function reports whether any one of them is a prefix of S.
 
 ```python
 'abc'.startswith(('a', 'A'))                  # True
