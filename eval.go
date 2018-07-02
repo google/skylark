@@ -105,14 +105,18 @@ func (d StringDict) Freeze() {
 // Has reports whether the dictionary contains the specified key.
 func (d StringDict) Has(key string) bool { _, ok := d[key]; return ok }
 
-// A Frame holds the execution state of a single Skylark function call
-// or module toplevel.
+// A Frame records a call to a Skylark function (including module toplevel)
+// or a built-in function or method.
 type Frame struct {
 	parent   *Frame          // caller's frame (or nil)
+	callable Callable        // current function (or toplevel) or built-in
 	posn     syntax.Position // source position of PC, set during error
 	callpc   uint32          // PC of position of active call, set during call
-	callable Callable        // current function (or toplevel) or built-in
 }
+
+// The Frames of a thread are structured as a spaghetti stack, not a
+// slice, so that an EvalError can copy a stack efficiently and immutably.
+// In hindsight using a slice would have led to a more convenient API.
 
 func (fr *Frame) errorf(posn syntax.Position, format string, args ...interface{}) *EvalError {
 	fr.posn = posn

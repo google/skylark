@@ -559,8 +559,6 @@ func (b *Builtin) Receiver() Value { return b.recv }
 func (b *Builtin) String() string  { return toString(b) }
 func (b *Builtin) Type() string    { return "builtin_function_or_method" }
 func (b *Builtin) Call(thread *Thread, args Tuple, kwargs []Tuple) (Value, error) {
-	// TODO(adonovan): opt: we can avoid allocating a Frame unnecessarily if we
-	// do it only when a built-in calls back into Skylark, or when Call fails.
 	thread.frame = &Frame{parent: thread.frame, callable: b}
 	result, err := b.fn(thread, b, args, kwargs)
 	thread.frame = thread.frame.parent

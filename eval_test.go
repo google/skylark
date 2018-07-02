@@ -167,8 +167,7 @@ func load(thread *skylark.Thread, module string) (skylark.StringDict, error) {
 	}
 
 	// TODO(adonovan): test load() using this execution path.
-	filename := filepath.Join(filepath.Dir(thread.
-		Caller().Position().Filename()), module)
+	filename := filepath.Join(filepath.Dir(thread.Caller().Position().Filename()), module)
 	return skylark.ExecFile(thread, filename, nil, nil)
 }
 
