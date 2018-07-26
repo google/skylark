@@ -49,9 +49,9 @@ func load(thread *skylark.Thread, module string) (skylark.StringDict, error) {
 }
 
 // gensym is a built-in function that generates a unique symbol.
-func gensym(thread *skylark.Thread, _ *skylark.Builtin, args skylark.Tuple, kwargs []skylark.Tuple) (skylark.Value, error) {
+func gensym(thread *skylark.Thread, b *skylark.Builtin, args skylark.Tuple, kwargs []skylark.Tuple) (skylark.Value, error) {
 	var name string
-	if err := skylark.UnpackArgs("gensym", args, kwargs, "name", &name); err != nil {
+	if err := b.UnpackArgs(args, kwargs, "name", &name); err != nil {
 		return nil, err
 	}
 	return &symbol{name: name}, nil
