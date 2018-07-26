@@ -766,6 +766,29 @@ func Binary(op syntax.Token, x, y Value) (Value, error) {
 			}
 		}
 
+	case syntax.CIRCUMFLEX:
+		switch x := x.(type) {
+		case Int:
+			if y, ok := y.(Int); ok {
+				return x.Xor(y), nil
+			}
+		case *Set: // symmetric difference
+			if y, ok := y.(*Set); ok {
+				set := new(Set)
+				for _, xelem := range x.elems() {
+					if found, _ := y.Has(xelem); !found {
+						set.Insert(xelem)
+					}
+				}
+				for _, yelem := range y.elems() {
+					if found, _ := x.Has(yelem); !found {
+						set.Insert(yelem)
+					}
+				}
+				return set, nil
+			}
+		}
+
 	default:
 		// unknown operator
 		goto unknown

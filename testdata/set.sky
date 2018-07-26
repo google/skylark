@@ -70,6 +70,14 @@ assert.fails(lambda: x.union([1, 2, {}]), "unhashable type: dict")
 assert.eq(list(set("a".elems()) & set("b".elems())), [])
 assert.eq(list(set("ab".elems()) & set("bc".elems())), ["b"])
 
+# symmetric difference, set ^ set
+assert.eq(set([1, 2, 3]) ^ set([4, 5, 3]), set([1, 2, 4, 5]))
+def test_symm_diff_eq():
+  x = set([1, 2, 3])
+  x ^= set([4,5,3])
+  assert.eq(x, set([1, 2, 4, 5]))
+test_symm_diff_eq()
+
 # len
 assert.eq(len(x), 3)
 assert.eq(len(y), 3)

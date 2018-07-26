@@ -72,6 +72,7 @@ const (
 	SLASH
 	SLASHSLASH
 	PERCENT
+	CIRCUMFLEX
 	AMP
 	PIPE
 
@@ -142,6 +143,7 @@ var opcodeNames = [...]string{
 	CALL_KW:     "call_kw ",
 	CALL_VAR:    "call_var",
 	CALL_VAR_KW: "call_var_kw",
+	CIRCUMFLEX:  "circumflex",
 	CJMP:        "cjmp",
 	CONSTANT:    "constant",
 	DUP2:        "dup2",
@@ -207,6 +209,7 @@ var stackEffect = [...]int8{
 	CALL_KW:     variableStackEffect,
 	CALL_VAR:    variableStackEffect,
 	CALL_VAR_KW: variableStackEffect,
+	CIRCUMFLEX:  -1,
 	CJMP:        -1,
 	CONSTANT:    +1,
 	DUP2:        +2,
@@ -955,7 +958,8 @@ func (fcomp *fcomp) stmt(stmt syntax.Stmt) {
 			syntax.STAR_EQ,
 			syntax.SLASH_EQ,
 			syntax.SLASHSLASH_EQ,
-			syntax.PERCENT_EQ:
+			syntax.PERCENT_EQ,
+			syntax.CIRCUMFLEX_EQ:
 			// augmented assignment: x += y
 
 			var set func()
@@ -1435,6 +1439,8 @@ func (fcomp *fcomp) binop(pos syntax.Position, op syntax.Token) {
 		fcomp.emit(AMP)
 	case syntax.PIPE:
 		fcomp.emit(PIPE)
+	case syntax.CIRCUMFLEX:
+		fcomp.emit(CIRCUMFLEX)
 	case syntax.IN:
 		fcomp.emit(IN)
 	case syntax.NOT_IN:

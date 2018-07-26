@@ -42,6 +42,7 @@ const (
 	SLASH         // /
 	SLASHSLASH    // //
 	PERCENT       // %
+	CIRCUMFLEX    // ^
 	AMP           // &
 	PIPE          // |
 	DOT           // .
@@ -61,12 +62,13 @@ const (
 	LE            // <=
 	EQL           // ==
 	NEQ           // !=
-	PLUS_EQ       // +=    (keep order consistent with PLUS..PERCENT)
+	PLUS_EQ       // +=    (keep order consistent with PLUS..CIRCUMFLEX)
 	MINUS_EQ      // -=
 	STAR_EQ       // *=
 	SLASH_EQ      // /=
 	SLASHSLASH_EQ // //=
 	PERCENT_EQ    // %=
+	CIRCUMFLEX_EQ // ^=
 	STARSTAR      // **
 
 	// Keywords
@@ -117,6 +119,7 @@ var tokenNames = [...]string{
 	SLASH:         "/",
 	SLASHSLASH:    "//",
 	PERCENT:       "%",
+	CIRCUMFLEX:    "^",
 	AMP:           "&",
 	PIPE:          "|",
 	DOT:           ".",
@@ -142,6 +145,7 @@ var tokenNames = [...]string{
 	SLASH_EQ:      "/=",
 	SLASHSLASH_EQ: "//=",
 	PERCENT_EQ:    "%=",
+	CIRCUMFLEX_EQ: "^=",
 	STARSTAR:      "**",
 	AND:           "and",
 	BREAK:         "break",
@@ -624,7 +628,7 @@ start:
 	// other punctuation
 	defer sc.endToken(val)
 	switch c {
-	case '=', '<', '>', '!', '+', '-', '%', '/': // possibly followed by '='
+	case '=', '<', '>', '!', '+', '-', '%', '/', '^': // possibly followed by '='
 		start := sc.pos
 		sc.readRune()
 		if sc.peekRune() == '=' {
@@ -646,6 +650,8 @@ start:
 				return SLASH_EQ
 			case '%':
 				return PERCENT_EQ
+			case '^':
+				return CIRCUMFLEX_EQ
 			}
 		}
 		switch c {
@@ -674,6 +680,8 @@ start:
 			return SLASH
 		case '%':
 			return PERCENT
+		case '^':
+			return CIRCUMFLEX
 		}
 		panic("unreachable")
 
