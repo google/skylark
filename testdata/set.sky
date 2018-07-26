@@ -70,7 +70,7 @@ assert.fails(lambda: x.union([1, 2, {}]), "unhashable type: dict")
 assert.eq(list(set("a".elems()) & set("b".elems())), [])
 assert.eq(list(set("ab".elems()) & set("bc".elems())), ["b"])
 
-# symmetric difference, set ^ set
+# symmetric difference, set ^ set (use resolve.AllowBitwise to enable it)
 assert.eq(set([1, 2, 3]) ^ set([4, 5, 3]), set([1, 2, 4, 5]))
 def test_symm_diff_eq():
   x = set([1, 2, 3])

@@ -452,6 +452,10 @@ of protocol messages which may contain signed and unsigned 64-bit
 integers.
 The Java implementation currently supports only signed 32-bit integers.
 
+The Go implementation of the Skylark REPL requires the `-bitwise` flag to
+enable support for `^`, `~`, `<<`, and `>>` operations.
+The Java implementation does not support `^`, `~`, `<<`, and `>>` operations.
+
 
 ### Floating-point numbers
 
@@ -849,7 +853,8 @@ A set used in a Boolean context is considered true if it is non-empty.
 
 <b>Implementation note:</b>
 The Go implementation of the Skylark REPL requires the `-set` flag to
-enable support for sets.
+enable support for sets and the `-bitwise` flag to enable support for
+the `^` operator.
 The Java implementation does not support sets.
 
 
