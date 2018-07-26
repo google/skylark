@@ -566,6 +566,11 @@ func (b *Builtin) Call(thread *Thread, args Tuple, kwargs []Tuple) (Value, error
 }
 func (b *Builtin) Truth() Bool { return true }
 
+// A convenience function for UnpackArgs() with the Builtin Name.
+func (b *Builtin) UnpackArgs(args Tuple, kwargs []Tuple, pairs ...interface{}) error {
+	return UnpackArgs(b.name, args, kwargs, pairs...)
+}
+
 // NewBuiltin returns a new 'builtin_function_or_method' value with the specified name
 // and implementation.  It compares unequal with all other values.
 func NewBuiltin(name string, fn func(thread *Thread, fn *Builtin, args Tuple, kwargs []Tuple) (Value, error)) *Builtin {

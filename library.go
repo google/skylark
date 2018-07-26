@@ -574,10 +574,10 @@ func hash(thread *Thread, _ *Builtin, args Tuple, kwargs []Tuple) (Value, error)
 }
 
 // https://github.com/google/skylark/blob/master/doc/spec.md#int
-func int_(thread *Thread, _ *Builtin, args Tuple, kwargs []Tuple) (Value, error) {
+func int_(thread *Thread, b *Builtin, args Tuple, kwargs []Tuple) (Value, error) {
 	var x Value = zero
 	var base Value
-	if err := UnpackArgs("int", args, kwargs, "x", &x, "base?", &base); err != nil {
+	if err := b.UnpackArgs(args, kwargs, "x", &x, "base?", &base); err != nil {
 		return nil, err
 	}
 
@@ -713,7 +713,7 @@ func minmax(thread *Thread, fn *Builtin, args Tuple, kwargs []Tuple) (Value, err
 		return nil, fmt.Errorf("%s requires at least one positional argument", fn.Name())
 	}
 	var keyFunc Callable
-	if err := UnpackArgs(fn.Name(), nil, kwargs, "key?", &keyFunc); err != nil {
+	if err := fn.UnpackArgs(nil, kwargs, "key?", &keyFunc); err != nil {
 		return nil, err
 	}
 	var op syntax.Token
@@ -1013,11 +1013,11 @@ func set(thread *Thread, fn *Builtin, args Tuple, kwargs []Tuple) (Value, error)
 }
 
 // https://github.com/google/skylark/blob/master/doc/spec.md#sorted
-func sorted(thread *Thread, _ *Builtin, args Tuple, kwargs []Tuple) (Value, error) {
+func sorted(thread *Thread, b *Builtin, args Tuple, kwargs []Tuple) (Value, error) {
 	var iterable Iterable
 	var key Callable
 	var reverse bool
-	if err := UnpackArgs("sorted", args, kwargs,
+	if err := b.UnpackArgs(args, kwargs,
 		"iterable", &iterable,
 		"key?", &key,
 		"reverse?", &reverse,

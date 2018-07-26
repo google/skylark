@@ -75,9 +75,9 @@ func LoadAssertModule() (skylark.StringDict, error) {
 
 // catch(f) evaluates f() and returns its evaluation error message
 // if it failed or None if it succeeded.
-func catch(thread *skylark.Thread, _ *skylark.Builtin, args skylark.Tuple, kwargs []skylark.Tuple) (skylark.Value, error) {
+func catch(thread *skylark.Thread, b *skylark.Builtin, args skylark.Tuple, kwargs []skylark.Tuple) (skylark.Value, error) {
 	var fn skylark.Callable
-	if err := skylark.UnpackArgs("catch", args, kwargs, "fn", &fn); err != nil {
+	if err := b.UnpackArgs(args, kwargs, "fn", &fn); err != nil {
 		return nil, err
 	}
 	if _, err := fn.Call(thread, nil, nil); err != nil {
@@ -87,9 +87,9 @@ func catch(thread *skylark.Thread, _ *skylark.Builtin, args skylark.Tuple, kwarg
 }
 
 // matches(pattern, str) reports whether string str matches the regular expression pattern.
-func matches(thread *skylark.Thread, _ *skylark.Builtin, args skylark.Tuple, kwargs []skylark.Tuple) (skylark.Value, error) {
+func matches(thread *skylark.Thread, b *skylark.Builtin, args skylark.Tuple, kwargs []skylark.Tuple) (skylark.Value, error) {
 	var pattern, str string
-	if err := skylark.UnpackArgs("matches", args, kwargs, "pattern", &pattern, "str", &str); err != nil {
+	if err := b.UnpackArgs(args, kwargs, "pattern", &pattern, "str", &str); err != nil {
 		return nil, err
 	}
 	ok, err := regexp.MatchString(pattern, str)
