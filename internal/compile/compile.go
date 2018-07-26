@@ -73,6 +73,8 @@ const (
 	SLASHSLASH
 	PERCENT
 	CIRCUMFLEX
+	LTLT
+	GTGT
 	AMP
 	PIPE
 
@@ -155,6 +157,7 @@ var opcodeNames = [...]string{
 	GE:          "ge",
 	GLOBAL:      "global",
 	GT:          "gt",
+	GTGT:        "gtgt",
 	IN:          "in",
 	INDEX:       "index",
 	INPLACE_ADD: "inplace_add",
@@ -166,6 +169,7 @@ var opcodeNames = [...]string{
 	LOAD:        "load",
 	LOCAL:       "local",
 	LT:          "lt",
+	LTLT:        "ltlt",
 	MAKEDICT:    "makedict",
 	MAKEFUNC:    "makefunc",
 	MAKELIST:    "makelist",
@@ -222,6 +226,7 @@ var stackEffect = [...]int8{
 	GE:          -1,
 	GLOBAL:      +1,
 	GT:          -1,
+	GTGT:        -1,
 	IN:          -1,
 	INDEX:       -1,
 	INPLACE_ADD: -1,
@@ -233,6 +238,7 @@ var stackEffect = [...]int8{
 	LOAD:        -1,
 	LOCAL:       +1,
 	LT:          -1,
+	LTLT:        -1,
 	MAKEDICT:    +1,
 	MAKEFUNC:    -1,
 	MAKELIST:    variableStackEffect,
@@ -961,7 +967,9 @@ func (fcomp *fcomp) stmt(stmt syntax.Stmt) {
 			syntax.SLASH_EQ,
 			syntax.SLASHSLASH_EQ,
 			syntax.PERCENT_EQ,
-			syntax.CIRCUMFLEX_EQ:
+			syntax.CIRCUMFLEX_EQ,
+			syntax.LTLT_EQ,
+			syntax.GTGT_EQ:
 			// augmented assignment: x += y
 
 			var set func()
@@ -1445,6 +1453,10 @@ func (fcomp *fcomp) binop(pos syntax.Position, op syntax.Token) {
 		fcomp.emit(PIPE)
 	case syntax.CIRCUMFLEX:
 		fcomp.emit(CIRCUMFLEX)
+	case syntax.LTLT:
+		fcomp.emit(LTLT)
+	case syntax.GTGT:
+		fcomp.emit(GTGT)
 	case syntax.IN:
 		fcomp.emit(IN)
 	case syntax.NOT_IN:

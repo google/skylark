@@ -234,11 +234,11 @@ characters are tokens:
 
 ```text
 +    -    *    /    //   %   ^
-&    |    **
+&    |    **                     <<    >>
 .    ,    =    ;    :
 (    )    [    ]    {    }
 <    >    >=   <=   ==   !=
-+=   -=   *=   /=   //=  %=  ^=
++=   -=   *=   /=   //=  %=  ^=  <<=   >>=
 ```
 
 *Keywords*: The following tokens are keywords and may not be used as
@@ -426,7 +426,8 @@ yields a `float` result even when its operands are both of type `int`.
 Integers, including negative values, may be interpreted as bit vectors.
 The `|`, `&`, and `^` operators implement bitwise OR, AND, and XOR,
 respectively. The unary `~` operator yields the bitwise inversion of its
-integer argument.
+integer argument. The `<<` and `>>` operators shift the first argument
+to the left or right by the number of bits given by the second argument.
 (These features are not part of the Java implementation.)
 
 Any bool, number, or string may be interpreted as an integer by using
@@ -1704,6 +1705,7 @@ not
 |
 ^
 &
+<<   >>
 -    +
 *    /    //   %
 ```
@@ -1724,6 +1726,7 @@ Binop = 'or'
       | '&'
       | '-' | '+'
       | '*' | '%' | '/' | '//'
+      | '<<' | '>>'
       .
 ```
 
@@ -1823,6 +1826,8 @@ Arithmetic (int or float; result has type float unless both operands have type i
    number // number             # floored division
    number % number              # remainder of floored division
    number ^ number              # bitwise XOR
+   number << number             # bitwise left shift
+   number >> number             # bitwise right shift
 
 Concatenation
    string + string
@@ -1900,10 +1905,17 @@ For integers, it yields the bitwise XOR (exclusive OR) of its operands.
 For sets, it yields a new set containing elements of either first or second
 operand but not both (symmetric difference).
 
+The `<<` and `>>` operators require operands of `int` type both. They shift
+the first operand to the left or right by the number of bits given by the
+second operand. It is a dynamic error if the second operand is negative.
+Implementations may impose a limit on the second operand of a left shift.
+
 ```python
 0x12345678 & 0xFF               # 0x00000078
 0x12345678 | 0xFF               # 0x123456FF
 0b01011101 ^ 0b110101101        # 0b111110000
+0b01011101 >> 2                 # 0b010111
+0b01011101 << 2                 # 0b0101110100
 
 set([1, 2]) & set([2, 3])       # set([2])
 set([1, 2]) | set([2, 3])       # set([1, 2, 3])
@@ -2447,11 +2459,11 @@ In the Java implementation, targets cannot be dot expressions.
 
 An augmented assignment, which has the form `lhs op= rhs` updates the
 variable `lhs` by applying a binary arithmetic operator `op` (one of
-`+`, `-`, `*`, `/`, `//`, `%`, `^`) to the previous value of `lhs` and the value
+`+`, `-`, `*`, `/`, `//`, `%`, `^`, `<<`, `>>`) to the previous value of `lhs` and the value
 of `rhs`.
 
 ```grammar {.good}
-AssignStmt = Expression ('=' | '+=' | '-=' | '*=' | '/=' | '//=' | '%=' | '^=') Expression .
+AssignStmt = Expression ('=' | '+=' | '-=' | '*=' | '/=' | '//=' | '%=' | '^=' | '<<=' | '>>=') Expression .
 ```
 
 The left-hand side must be a simple target:

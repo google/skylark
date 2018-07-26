@@ -43,6 +43,8 @@ const (
 	SLASHSLASH    // //
 	PERCENT       // %
 	CIRCUMFLEX    // ^
+	LTLT          // <<
+	GTGT          // >>
 	AMP           // &
 	PIPE          // |
 	TILDE         // ~
@@ -63,13 +65,15 @@ const (
 	LE            // <=
 	EQL           // ==
 	NEQ           // !=
-	PLUS_EQ       // +=    (keep order consistent with PLUS..CIRCUMFLEX)
+	PLUS_EQ       // +=    (keep order consistent with PLUS..GTGT)
 	MINUS_EQ      // -=
 	STAR_EQ       // *=
 	SLASH_EQ      // /=
 	SLASHSLASH_EQ // //=
 	PERCENT_EQ    // %=
 	CIRCUMFLEX_EQ // ^=
+	LTLT_EQ       // <<=
+	GTGT_EQ       // >>=
 	STARSTAR      // **
 
 	// Keywords
@@ -119,6 +123,8 @@ var tokenNames = [...]string{
 	STAR:          "*",
 	SLASH:         "/",
 	SLASHSLASH:    "//",
+	LTLT:          "<<",
+	GTGT:          ">>",
 	PERCENT:       "%",
 	CIRCUMFLEX:    "^",
 	AMP:           "&",
@@ -148,6 +154,8 @@ var tokenNames = [...]string{
 	SLASHSLASH_EQ: "//=",
 	PERCENT_EQ:    "%=",
 	CIRCUMFLEX_EQ: "^=",
+	LTLT_EQ:       "<<=",
+	GTGT_EQ:       ">>=",
 	STARSTAR:      "**",
 	AND:           "and",
 	BREAK:         "break",
@@ -660,8 +668,26 @@ start:
 		case '=':
 			return EQ
 		case '<':
+			if sc.peekRune() == '<' {
+				sc.readRune()
+				if sc.peekRune() == '=' {
+					sc.readRune()
+					return LTLT_EQ
+				} else {
+					return LTLT
+				}
+			}
 			return LT
 		case '>':
+			if sc.peekRune() == '>' {
+				sc.readRune()
+				if sc.peekRune() == '=' {
+					sc.readRune()
+					return GTGT_EQ
+				} else {
+					return GTGT
+				}
+			}
 			return GT
 		case '!':
 			sc.error(start, "unexpected input character '!'")

@@ -793,6 +793,25 @@ func Binary(op syntax.Token, x, y Value) (Value, error) {
 			}
 		}
 
+	case syntax.LTLT, syntax.GTGT:
+		if x, ok := x.(Int); ok {
+			y, err := AsInt32(y)
+			if err != nil {
+				return nil, err
+			}
+			if y < 0 {
+				return nil, fmt.Errorf("negative shift count: %v", y)
+			}
+			if op == syntax.LTLT {
+				if y >= 512 {
+					return nil, fmt.Errorf("shift count too large: %v", y)
+				}
+				return x.Lsh(uint(y)), nil
+			} else {
+				return x.Rsh(uint(y)), nil
+			}
+		}
+
 	default:
 		// unknown operator
 		goto unknown
