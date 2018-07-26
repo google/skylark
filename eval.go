@@ -437,7 +437,7 @@ func setIndex(fr *Frame, x, y, z Value) error {
 	return nil
 }
 
-// Unary applies a unary operator (+, -, not) to its operand.
+// Unary applies a unary operator (+, -, ~, not) to its operand.
 func Unary(op syntax.Token, x Value) (Value, error) {
 	switch op {
 	case syntax.MINUS:
@@ -451,6 +451,10 @@ func Unary(op syntax.Token, x Value) (Value, error) {
 		switch x.(type) {
 		case Int, Float:
 			return x, nil
+		}
+	case syntax.TILDE:
+		if xint, ok := x.(Int); ok {
+			return xint.Not(), nil
 		}
 	case syntax.NOT:
 		return !x.Truth(), nil

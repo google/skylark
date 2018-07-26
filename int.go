@@ -141,6 +141,7 @@ func (x Int) Mul(y Int) Int { return Int{new(big.Int).Mul(x.bigint, y.bigint)} }
 func (x Int) Or(y Int) Int  { return Int{new(big.Int).Or(x.bigint, y.bigint)} }
 func (x Int) And(y Int) Int { return Int{new(big.Int).And(x.bigint, y.bigint)} }
 func (x Int) Xor(y Int) Int { return Int{new(big.Int).Xor(x.bigint, y.bigint)} }
+func (x Int) Not() Int      { return Int{new(big.Int).Not(x.bigint)} }
 
 // Precondition: y is nonzero.
 func (x Int) Div(y Int) Int {

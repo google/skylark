@@ -45,6 +45,7 @@ const (
 	CIRCUMFLEX    // ^
 	AMP           // &
 	PIPE          // |
+	TILDE         // ~
 	DOT           // .
 	COMMA         // ,
 	EQ            // =
@@ -122,6 +123,7 @@ var tokenNames = [...]string{
 	CIRCUMFLEX:    "^",
 	AMP:           "&",
 	PIPE:          "|",
+	TILDE:         "~",
 	DOT:           ".",
 	COMMA:         ",",
 	EQ:            "=",
@@ -628,7 +630,7 @@ start:
 	// other punctuation
 	defer sc.endToken(val)
 	switch c {
-	case '=', '<', '>', '!', '+', '-', '%', '/', '^': // possibly followed by '='
+	case '=', '<', '>', '!', '+', '-', '%', '/', '^', '~': // possibly followed by '='
 		start := sc.pos
 		sc.readRune()
 		if sc.peekRune() == '=' {
@@ -682,6 +684,8 @@ start:
 			return PERCENT
 		case '^':
 			return CIRCUMFLEX
+		case '~':
+			return TILDE
 		}
 		panic("unreachable")
 

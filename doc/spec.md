@@ -425,7 +425,9 @@ yields a `float` result even when its operands are both of type `int`.
 
 Integers, including negative values, may be interpreted as bit vectors.
 The `|`, `&`, and `^` operators implement bitwise OR, AND, and XOR,
-respectively. (This feature is not part of the Java implementation.)
+respectively. The unary `~` operator yields the bitwise inversion of its
+integer argument.
+(These features are not part of the Java implementation.)
 
 Any bool, number, or string may be interpreted as an integer by using
 the `int` built-in function.
@@ -1634,11 +1636,12 @@ Examples:
 ### Unary operators
 
 There are three unary operators, all appearing before their operand:
-`+`, `-`, and `not`.
+`+`, `-`, `~`, and `not`.
 
 ```grammar {.good}
 UnaryExpr = '+' PrimaryExpr
           | '-' PrimaryExpr
+          | '~' PrimaryExpr
           | 'not' Test
           .
 ```
@@ -1646,6 +1649,7 @@ UnaryExpr = '+' PrimaryExpr
 ```text
 + number        unary positive          (int, float)
 - number        unary negation          (int, float)
+~ number        unary bitwise inversion (int)
 not x           logical negation        (any type)
 ```
 
@@ -1675,9 +1679,18 @@ not ""                          # True
 not 0                           # True
 ```
 
+The `~` operator yields the bitwise inversion of its integer argument.
+The bitwise inversion of x is defined as -(x+1).
+
+```python
+~1                              # -2
+~-1                             # 0
+~0                              # -1
+```
+
 <b>Implementation note:</b>
 The parser in the Java implementation of Skylark does not accept unary
-`+` expressions.
+`+` and `~` expressions.
 
 ### Binary operators
 

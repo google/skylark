@@ -122,7 +122,7 @@ assert.eq(int("-0o123", 0), -83)
 assert.fails(lambda: int("0123", 0), "invalid literal.*base 0") # valid in Python 2.7
 assert.fails(lambda: int("-0123", 0), "invalid literal.*base 0")
 
-# bitwise union (int|int), intersection (int&int), and XOR (int^int).
+# bitwise union (int|int), intersection (int&int), XOR (int^int), and unary not (~int).
 # TODO(adonovan): this is not yet in the Skylark spec,
 # but there is consensus that it should be.
 assert.eq(1|2, 3)
@@ -131,6 +131,9 @@ assert.eq((1|2) & (2|4), 2)
 assert.eq(1 ^ 2, 3)
 assert.eq(2 ^ 2, 0)
 assert.eq(1 | 0 ^ 1, 1) # check | and ^ operators precedence
+assert.eq(~1, -2)
+assert.eq(~-2, 1)
+assert.eq(~0, -1)
 
 # comparisons
 # TODO(adonovan): test: < > == != etc

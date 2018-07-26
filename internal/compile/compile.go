@@ -81,6 +81,7 @@ const (
 	// unary operators
 	UPLUS  // x UPLUS x
 	UMINUS // x UMINUS -x
+	TILDE  // x TILDE ~x
 
 	NONE  // - NONE None
 	TRUE  // - TRUE True
@@ -190,6 +191,7 @@ var opcodeNames = [...]string{
 	SLASHSLASH:  "slashslash",
 	SLICE:       "slice",
 	STAR:        "star",
+	TILDE:       "tilde",
 	TRUE:        "true",
 	UMINUS:      "uminus",
 	UNIVERSAL:   "universal",
@@ -1215,6 +1217,8 @@ func (fcomp *fcomp) expr(e syntax.Expr) {
 			fcomp.emit(UPLUS)
 		case syntax.NOT:
 			fcomp.emit(NOT)
+		case syntax.TILDE:
+			fcomp.emit(TILDE)
 		default:
 			log.Fatalf("%s: unexpected unary op: %s", e.OpPos, e.Op)
 		}

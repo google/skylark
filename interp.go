@@ -150,8 +150,13 @@ loop:
 			stack[sp] = z
 			sp++
 
-		case compile.UPLUS, compile.UMINUS:
-			unop := syntax.Token(op-compile.UPLUS) + syntax.PLUS
+		case compile.UPLUS, compile.UMINUS, compile.TILDE:
+			var unop syntax.Token
+			if op == compile.TILDE {
+				unop = syntax.TILDE
+			} else {
+				unop = syntax.Token(op-compile.UPLUS) + syntax.PLUS
+			}
 			x := stack[sp-1]
 			y, err2 := Unary(unop, x)
 			if err2 != nil {

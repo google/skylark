@@ -588,7 +588,7 @@ var precedence [maxToken]int8
 
 // preclevels groups operators of equal precedence.
 // Comparisons are nonassociative; other binary operators associate to the left.
-// Unary MINUS and PLUS have higher precedence so are handled in parsePrimary.
+// Unary MINUS, unary PLUS, and TILDE have higher precedence so are handled in parsePrimary.
 // See https://github.com/google/skylark/blob/master/doc/spec.md#binary-operators
 var preclevels = [...][]Token{
 	{OR},  // or
@@ -804,8 +804,8 @@ func (p *parser) parsePrimary() Expr {
 			Rparen: rparen,
 		}
 
-	case MINUS, PLUS:
-		// unary minus/plus:
+	case MINUS, PLUS, TILDE:
+		// unary minus/plus/tilde:
 		tok := p.tok
 		pos := p.nextToken()
 		x := p.parsePrimaryWithSuffix()
