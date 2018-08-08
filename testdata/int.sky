@@ -129,12 +129,12 @@ assert.fails(lambda: int("-0123", 0), "invalid literal.*base 0")
 
 # bitwise union (int|int), intersection (int&int), XOR (int^int), unary not (~int),
 # left shift (int<<int), and right shift (int>>int).
+# use resolve.AllowBitwise to enable the ops.
 # TODO(adonovan): this is not yet in the Skylark spec,
 # but there is consensus that it should be.
 assert.eq(1|2, 3)
 assert.eq(3|6, 7)
 assert.eq((1|2) & (2|4), 2)
-# use resolve.AllowBitwise to enable the ops:
 assert.eq(1 ^ 2, 3)
 assert.eq(2 ^ 2, 0)
 assert.eq(1 | 0 ^ 1, 1) # check | and ^ operators precedence

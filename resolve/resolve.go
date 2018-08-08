@@ -90,7 +90,7 @@ var (
 	AllowFloat          = false // allow floating point literals, the 'float' built-in, and x / y
 	AllowSet            = false // allow the 'set' built-in
 	AllowGlobalReassign = false // allow reassignment to globals declared in same file (deprecated)
-	AllowBitwise        = false // allow bitwise operations (^, ~, <<, and >>)
+	AllowBitwise        = false // allow bitwise operations (&, |, ^, ~, <<, and >>)
 )
 
 // File resolves the specified file.
@@ -604,7 +604,7 @@ func (r *resolver) expr(e syntax.Expr) {
 		if !AllowFloat && e.Op == syntax.SLASH {
 			r.errorf(e.OpPos, doesnt+"support floating point (use //)")
 		}
-		if !AllowBitwise && (e.Op == syntax.CIRCUMFLEX || e.Op == syntax.LTLT || e.Op == syntax.GTGT) {
+		if !AllowBitwise && (e.Op == syntax.AMP || e.Op == syntax.PIPE || e.Op == syntax.CIRCUMFLEX || e.Op == syntax.LTLT || e.Op == syntax.GTGT) {
 			r.errorf(e.OpPos, doesnt+"support bitwise operations")
 		}
 		r.expr(e.X)

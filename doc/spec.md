@@ -453,7 +453,7 @@ integers.
 The Java implementation currently supports only signed 32-bit integers.
 
 The Go implementation of the Skylark REPL requires the `-bitwise` flag to
-enable support for `^`, `~`, `<<`, and `>>` operations.
+enable support for `&`, `|`, `^`, `~`, `<<`, and `>>` operations.
 The Java implementation does not support `^`, `~`, `<<`, and `>>` operations.
 
 
@@ -854,7 +854,7 @@ A set used in a Boolean context is considered true if it is non-empty.
 <b>Implementation note:</b>
 The Go implementation of the Skylark REPL requires the `-set` flag to
 enable support for sets and the `-bitwise` flag to enable support for
-the `^` operator.
+the `&`, `|`, and `^` operators.
 The Java implementation does not support sets.
 
 
@@ -2464,8 +2464,8 @@ In the Java implementation, targets cannot be dot expressions.
 
 An augmented assignment, which has the form `lhs op= rhs` updates the
 variable `lhs` by applying a binary arithmetic operator `op` (one of
-`+`, `-`, `*`, `/`, `//`, `%`, `^`, `<<`, `>>`) to the previous value of `lhs` and the value
-of `rhs`.
+`+`, `-`, `*`, `/`, `//`, `%`, `&`, `|`, `^`, `<<`, `>>`) to the previous
+value of `lhs` and the value of `rhs`.
 
 ```grammar {.good}
 AssignStmt = Expression ('=' | '+=' | '-=' | '*=' | '/=' | '//=' | '%=' | '^=' | '<<=' | '>>=') Expression .

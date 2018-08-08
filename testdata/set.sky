@@ -47,7 +47,7 @@ y = set([3, 4, 5])
 # set + any is not defined
 assert.fails(lambda: x + y, "unknown.*: set \+ set")
 
-# set | set
+# set | set (use resolve.AllowBitwise to enable it)
 assert.eq(list(set("a".elems()) | set("b".elems())), ["a", "b"])
 assert.eq(list(set("ab".elems()) | set("bc".elems())), ["a", "b", "c"])
 assert.fails(lambda: set() | [], "unknown binary op: set | list")
@@ -66,7 +66,7 @@ assert.eq(list(x.union([5, 1])), [1, 2, 3, 5])
 assert.eq(list(x.union((6, 5, 4))), [1, 2, 3, 6, 5, 4])
 assert.fails(lambda: x.union([1, 2, {}]), "unhashable type: dict")
 
-# intersection, set & set
+# intersection, set & set (use resolve.AllowBitwise to enable it)
 assert.eq(list(set("a".elems()) & set("b".elems())), [])
 assert.eq(list(set("ab".elems()) & set("bc".elems())), ["b"])
 
