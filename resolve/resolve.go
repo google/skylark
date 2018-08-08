@@ -405,8 +405,11 @@ func (r *resolver) stmt(stmt syntax.Stmt) {
 		r.stmts(stmt.False)
 
 	case *syntax.AssignStmt:
-		if !AllowBitwise && (stmt.Op == syntax.CIRCUMFLEX_EQ || stmt.Op == syntax.LTLT_EQ || stmt.Op == syntax.GTGT_EQ) {
-			r.errorf(stmt.OpPos, doesnt+"support bitwise operations")
+		if !AllowBitwise {
+			switch stmt.Op {
+			case syntax.AMP_EQ, syntax.PIPE_EQ, syntax.CIRCUMFLEX_EQ, syntax.LTLT_EQ, syntax.GTGT_EQ:
+				r.errorf(stmt.OpPos, doesnt+"support bitwise operations")
+			}
 		}
 		r.expr(stmt.RHS)
 		// x += y may be a re-binding of a global variable,
@@ -604,8 +607,11 @@ func (r *resolver) expr(e syntax.Expr) {
 		if !AllowFloat && e.Op == syntax.SLASH {
 			r.errorf(e.OpPos, doesnt+"support floating point (use //)")
 		}
-		if !AllowBitwise && (e.Op == syntax.AMP || e.Op == syntax.PIPE || e.Op == syntax.CIRCUMFLEX || e.Op == syntax.LTLT || e.Op == syntax.GTGT) {
-			r.errorf(e.OpPos, doesnt+"support bitwise operations")
+		if !AllowBitwise {
+			switch e.Op {
+			case syntax.AMP, syntax.PIPE, syntax.CIRCUMFLEX, syntax.LTLT, syntax.GTGT:
+				r.errorf(e.OpPos, doesnt+"support bitwise operations")
+			}
 		}
 		r.expr(e.X)
 		r.expr(e.Y)

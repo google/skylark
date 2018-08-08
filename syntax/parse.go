@@ -226,7 +226,7 @@ func (p *parser) parseSimpleStmt(stmts []Stmt) []Stmt {
 // small_stmt = RETURN expr?
 //            | PASS | BREAK | CONTINUE
 //            | LOAD ...
-//            | expr ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '<<=' | '>>=') expr   // assign
+//            | expr ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=') expr   // assign
 //            | expr
 func (p *parser) parseSmallStmt() Stmt {
 	switch p.tok {
@@ -250,7 +250,7 @@ func (p *parser) parseSmallStmt() Stmt {
 	// Assignment
 	x := p.parseExpr(false)
 	switch p.tok {
-	case EQ, PLUS_EQ, MINUS_EQ, STAR_EQ, SLASH_EQ, SLASHSLASH_EQ, PERCENT_EQ, CIRCUMFLEX_EQ, LTLT_EQ, GTGT_EQ:
+	case EQ, PLUS_EQ, MINUS_EQ, STAR_EQ, SLASH_EQ, SLASHSLASH_EQ, PERCENT_EQ, AMP_EQ, PIPE_EQ, CIRCUMFLEX_EQ, LTLT_EQ, GTGT_EQ:
 		op := p.tok
 		pos := p.nextToken() // consume op
 		rhs := p.parseExpr(false)

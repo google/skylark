@@ -235,6 +235,7 @@ characters are tokens:
 ```text
 +    -    *    /    //   %   ^
 &    |    **                     <<    >>
+&=   |=
 .    ,    =    ;    :
 (    )    [    ]    {    }
 <    >    >=   <=   ==   !=
@@ -2468,7 +2469,7 @@ variable `lhs` by applying a binary arithmetic operator `op` (one of
 value of `lhs` and the value of `rhs`.
 
 ```grammar {.good}
-AssignStmt = Expression ('=' | '+=' | '-=' | '*=' | '/=' | '//=' | '%=' | '^=' | '<<=' | '>>=') Expression .
+AssignStmt = Expression ('=' | '+=' | '-=' | '*=' | '/=' | '//=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=') Expression .
 ```
 
 The left-hand side must be a simple target:

@@ -42,11 +42,11 @@ const (
 	SLASH         // /
 	SLASHSLASH    // //
 	PERCENT       // %
+	AMP           // &
+	PIPE          // |
 	CIRCUMFLEX    // ^
 	LTLT          // <<
 	GTGT          // >>
-	AMP           // &
-	PIPE          // |
 	TILDE         // ~
 	DOT           // .
 	COMMA         // ,
@@ -71,6 +71,8 @@ const (
 	SLASH_EQ      // /=
 	SLASHSLASH_EQ // //=
 	PERCENT_EQ    // %=
+	AMP_EQ        // &=
+	PIPE_EQ       // |=
 	CIRCUMFLEX_EQ // ^=
 	LTLT_EQ       // <<=
 	GTGT_EQ       // >>=
@@ -123,12 +125,12 @@ var tokenNames = [...]string{
 	STAR:          "*",
 	SLASH:         "/",
 	SLASHSLASH:    "//",
-	LTLT:          "<<",
-	GTGT:          ">>",
 	PERCENT:       "%",
-	CIRCUMFLEX:    "^",
 	AMP:           "&",
 	PIPE:          "|",
+	CIRCUMFLEX:    "^",
+	LTLT:          "<<",
+	GTGT:          ">>",
 	TILDE:         "~",
 	DOT:           ".",
 	COMMA:         ",",
@@ -153,6 +155,8 @@ var tokenNames = [...]string{
 	SLASH_EQ:      "/=",
 	SLASHSLASH_EQ: "//=",
 	PERCENT_EQ:    "%=",
+	AMP_EQ:        "&=",
+	PIPE_EQ:       "|=",
 	CIRCUMFLEX_EQ: "^=",
 	LTLT_EQ:       "<<=",
 	GTGT_EQ:       ">>=",
@@ -638,7 +642,7 @@ start:
 	// other punctuation
 	defer sc.endToken(val)
 	switch c {
-	case '=', '<', '>', '!', '+', '-', '%', '/', '^', '~': // possibly followed by '='
+	case '=', '<', '>', '!', '+', '-', '%', '/', '&', '|', '^', '~': // possibly followed by '='
 		start := sc.pos
 		sc.readRune()
 		if sc.peekRune() == '=' {
@@ -660,6 +664,10 @@ start:
 				return SLASH_EQ
 			case '%':
 				return PERCENT_EQ
+			case '&':
+				return AMP_EQ
+			case '|':
+				return PIPE_EQ
 			case '^':
 				return CIRCUMFLEX_EQ
 			}
@@ -708,6 +716,10 @@ start:
 			return SLASH
 		case '%':
 			return PERCENT
+		case '&':
+			return AMP
+		case '|':
+			return PIPE
 		case '^':
 			return CIRCUMFLEX
 		case '~':
@@ -715,17 +727,13 @@ start:
 		}
 		panic("unreachable")
 
-	case ':', ';', '|', '&': // single-char tokens (except comma)
+	case ':', ';': // single-char tokens (except comma)
 		sc.readRune()
 		switch c {
 		case ':':
 			return COLON
 		case ';':
 			return SEMI
-		case '|':
-			return PIPE
-		case '&':
-			return AMP
 		}
 		panic("unreachable")
 

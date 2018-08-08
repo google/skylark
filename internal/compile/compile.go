@@ -72,11 +72,11 @@ const (
 	SLASH
 	SLASHSLASH
 	PERCENT
+	AMP
+	PIPE
 	CIRCUMFLEX
 	LTLT
 	GTGT
-	AMP
-	PIPE
 
 	IN
 
@@ -967,6 +967,8 @@ func (fcomp *fcomp) stmt(stmt syntax.Stmt) {
 			syntax.SLASH_EQ,
 			syntax.SLASHSLASH_EQ,
 			syntax.PERCENT_EQ,
+			syntax.AMP_EQ,
+			syntax.PIPE_EQ,
 			syntax.CIRCUMFLEX_EQ,
 			syntax.LTLT_EQ,
 			syntax.GTGT_EQ:

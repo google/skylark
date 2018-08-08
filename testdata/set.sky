@@ -72,11 +72,16 @@ assert.eq(list(set("ab".elems()) & set("bc".elems())), ["b"])
 
 # symmetric difference, set ^ set (use resolve.AllowBitwise to enable it)
 assert.eq(set([1, 2, 3]) ^ set([4, 5, 3]), set([1, 2, 4, 5]))
-def test_symm_diff_eq():
+
+def test_set_augmented_assign():
   x = set([1, 2, 3])
-  x ^= set([4,5,3])
+  x &= set([2, 3])
+  assert.eq(x, set([2, 3]))
+  x |= set([1])
+  assert.eq(x, set([1, 2, 3]))
+  x ^= set([4, 5, 3])
   assert.eq(x, set([1, 2, 4, 5]))
-test_symm_diff_eq()
+test_set_augmented_assign()
 
 # len
 assert.eq(len(x), 3)

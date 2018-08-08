@@ -53,6 +53,10 @@ def compound():
   assert.eq(x, 2)
   # use resolve.AllowBitwise to enable the ops:
   x = 2
+  x &= 1
+  assert.eq(x, 0)
+  x |= 2
+  assert.eq(x, 2)
   x ^= 3
   assert.eq(x, 1)
   x <<= 2
