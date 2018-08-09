@@ -14,6 +14,7 @@
 
 # (From https://github.com/bazelbuild/rules_go/blob/master/go/def.bzl@a6f9d0c)
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("//go/private:repositories.bzl", "go_repositories")
 load("//go/private:go_repository.bzl", "go_repository", "new_go_repository")
 load("//go/private:go_prefix.bzl", "go_prefix")
@@ -73,7 +74,7 @@ cgo_filetype = FileType([
 
 def go_environment_vars(ctx):
   """Return a map of environment variables for use with actions, based on
-  the arguments. Uses the ctx.fragments.cpp.cpu attribute, if present,
+  the arguments. Uses find_cpp_toolchain(ctx).cpu, if present,
   and picks a default of target_os="linux" and target_arch="amd64"
   otherwise.
 
@@ -97,11 +98,11 @@ def go_environment_vars(ctx):
   env = {}
   if hasattr(ctx.file, "go_tool"):
     env["GOROOT"] = ctx.file.go_tool.dirname + "/.."
-  env.update(bazel_to_go_toolchain.get(ctx.fragments.cpp.cpu, default_toolchain))
+  env.update(bazel_to_go_toolchain.get(find_cpp_toolchain(ctx).cpu, default_toolchain))
   return env
 
 def _is_darwin_cpu(ctx):
-  cpu = ctx.fragments.cpp.cpu
+  cpu = find_cpp_toolchain(ctx).cpu
   return cpu == "darwin" or cpu == "darwin_x86_64"
 
 def _emit_generate_params_action(cmds, ctx, fn):
@@ -357,12 +358,11 @@ def _c_linker_options(ctx, blacklist=[]):
   Returns:
     A list of command line flags
   """
-  cpp = ctx.fragments.cpp
-  features = ctx.features
-  options = cpp.compiler_options(features)
+  cpp = find_cpp_toolchain(ctx)
+  options = cpp.compiler_options()
   options += cpp.unfiltered_compiler_options(features)
   options += cpp.link_options
-  options += cpp.mostly_static_link_options(ctx.features, False)
+  options += cpp.mostly_static_link_options(False)
   filtered = []
   for opt in options:
     if any([opt.startswith(prefix) for prefix in blacklist]):
@@ -414,7 +414,7 @@ def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librari
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 
-  ld = "%s" % ctx.fragments.cpp.compiler_executable
+  ld = "%s" % find_cpp_toolchain(ctx).compiler_executable()
   extldflags = _c_linker_options(ctx) + [
       "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
   ]
@@ -659,6 +659,11 @@ _crosstool_attrs = {
     "_crosstool": attr.label(
         default = Label("//tools/defaults:crosstool"),
     ),
+    # Do not add references, temporary attribute for find_cpp_toolchain.
+    # This is part of migrating to the new skylark API for cpp toolchain.
+    "_cc_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+    ),
 }
 
 go_link_attrs = go_library_attrs + _crosstool_attrs + {
@@ -676,15 +681,18 @@ go_library = rule(
                 "cgo_deps",
             ],
         ),
+        # Do not add references, temporary attribute for find_cpp_toolchain.
+        # This is part of migrating to the new skylark API for cpp toolchain.
+        "_cc_toolchain": attr.label(
+            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+        ),
     },
-    fragments = ["cpp"],
 )
 
 go_binary = rule(
     go_binary_impl,
     attrs = go_library_attrs + _crosstool_attrs + go_link_attrs,
     executable = True,
-    fragments = ["cpp"],
 )
 
 go_test = rule(
@@ -699,7 +707,6 @@ go_test = rule(
         ),
     },
     executable = True,
-    fragments = ["cpp"],
     test = True,
 )
 
@@ -770,7 +777,7 @@ def _cgo_codegen_impl(ctx):
   go_srcs = ctx.files.srcs
   srcs = go_srcs + ctx.files.c_hdrs
   linkopts = ctx.attr.linkopts
-  copts = ctx.fragments.cpp.c_options + ctx.attr.copts
+  copts = find_cpp_toolchain(ctx).c_options() + ctx.attr.copts
   deps = depset([], order="topological")
   for d in ctx.attr.deps:
     srcs += list(d.cc.transitive_headers)
@@ -796,7 +803,7 @@ def _cgo_codegen_impl(ctx):
     p = "" # workaround when cgo_library in repository root
   out_dir = (ctx.configuration.genfiles_dir.path + '/' +
              p + ctx.attr.outdir)
-  cc = ctx.fragments.cpp.compiler_executable
+  cc = find_cpp_toolchain(ctx).compiler_executable()
   cmds = [
       # We cannot use env for CC because $(CC) on OSX is relative
       # and '../' does not work fine due to symlinks.
@@ -874,7 +881,6 @@ _cgo_codegen_rule = rule(
             non_empty = True,
         ),
     },
-    fragments = ["cpp"],
     output_to_genfiles = True,
 )
 
@@ -983,8 +989,12 @@ _cgo_import = rule(
             executable = True,
             cfg = "host",
         ),
+        # Do not add references, temporary attribute for find_cpp_toolchain.
+        # This is part of migrating to the new skylark API for cpp toolchain.
+        "_cc_toolchain": attr.label(
+            default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+        ),
     },
-    fragments = ["cpp"],
 )
 
 def _cgo_genrule_impl(ctx):
@@ -1053,7 +1063,7 @@ def _cgo_object_impl(ctx):
       outputs = [ctx.outputs.out],
       mnemonic = "CGoObject",
       progress_message = "Linking %s" % ctx.outputs.out.short_path,
-      executable = ctx.fragments.cpp.compiler_executable,
+      executable = find_cpp_toolchain(ctx).compiler_executable(),
       arguments = arguments,
   )
   runfiles = ctx.runfiles(collect_data = True)
@@ -1080,7 +1090,6 @@ _cgo_object = rule(
             mandatory = True,
         ),
     },
-    fragments = ["cpp"],
 )
 
 """Generates _all.o to be archived together with Go objects.
