@@ -601,7 +601,7 @@ func (d *Dict) Items() []Tuple                                  { return d.ht.it
 func (d *Dict) Keys() []Value                                   { return d.ht.keys() }
 func (d *Dict) Len() int                                        { return int(d.ht.len) }
 func (d *Dict) Iterate() Iterator                               { return d.ht.iterate() }
-func (d *Dict) Set(k, v Value) error                            { return d.ht.insert(k, v) }
+func (d *Dict) SetKey(k, v Value) error                         { return d.ht.insert(k, v) }
 func (d *Dict) String() string                                  { return toString(d) }
 func (d *Dict) Type() string                                    { return "dict" }
 func (d *Dict) Freeze()                                         { d.ht.freeze() }
@@ -610,6 +610,9 @@ func (d *Dict) Hash() (uint32, error)                           { return 0, fmt.
 
 func (d *Dict) Attr(name string) (Value, error) { return builtinAttr(d, name, dictMethods) }
 func (d *Dict) AttrNames() []string             { return builtinAttrNames(dictMethods) }
+
+// Set is an backwards-compatibility alias for SetKey.
+func (d *Dict) Set(k, v Value) error { return d.SetKey(k, v)}
 
 func (x *Dict) CompareSameType(op syntax.Token, y_ Value, depth int) (bool, error) {
 	y := y_.(*Dict)
