@@ -805,8 +805,8 @@ func (p *parser) parsePrimary() Expr {
 			Rparen: rparen,
 		}
 
-	case MINUS, PLUS, TILDE:
-		// unary minus/plus/tilde:
+	case MINUS, PLUS, TILDE, NOT:
+		// unary minus/plus/tilde/not:
 		tok := p.tok
 		pos := p.nextToken()
 		x := p.parsePrimaryWithSuffix()
