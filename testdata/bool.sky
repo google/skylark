@@ -5,6 +5,7 @@ load("assert.sky", "assert")
 # truth
 assert.true(True)
 assert.true(not False)
+assert.true(not not True)
 
 # bool conversion
 assert.eq([bool(), bool(1), bool(0), bool("hello"), bool("")],
