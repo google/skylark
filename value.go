@@ -28,10 +28,12 @@
 //      Iterable        -- value is iterable using 'for' loops
 //      Sequence        -- value is iterable sequence of known length
 //      Indexable       -- value is sequence with efficient random access
+//      Mapping         -- value maps from keys to values, like a dictionary
 //      HasBinary       -- value defines binary operations such as * and +
 //      HasAttrs        -- value has readable fields or methods x.f
 //      HasSetField     -- value has settable fields x.f
 //      HasSetIndex     -- value supports element update using x[i]=y
+//      HasSetKey       -- value supports map update using x[k]=v
 //
 // Client applications may also define domain-specific functions in Go
 // and make them available to Skylark programs.  Use NewBuiltin to
@@ -231,7 +233,7 @@ type Iterator interface {
 	Done()
 }
 
-// An Mapping is a mapping from keys to values, such as a dictionary.
+// A Mapping is a mapping from keys to values, such as a dictionary.
 type Mapping interface {
 	Value
 	// Get returns the value corresponding to the specified key,
@@ -243,6 +245,14 @@ type Mapping interface {
 }
 
 var _ Mapping = (*Dict)(nil)
+
+// A HasSetKey supports map update using x[k]=v syntax, like a dictionary.
+type HasSetKey interface {
+	Mapping
+	SetKey(k, v Value) error
+}
+
+var _ HasSetKey = (*Dict)(nil)
 
 // A HasBinary value may be used as either operand of these binary operators:
 //     +   -   *   /   %   in   not in   |   &

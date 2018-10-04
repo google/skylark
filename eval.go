@@ -413,7 +413,7 @@ func getIndex(fr *Frame, x, y Value) (Value, error) {
 // setIndex implements x[y] = z.
 func setIndex(fr *Frame, x, y, z Value) error {
 	switch x := x.(type) {
-	case *Dict:
+	case HasSetKey:
 		if err := x.SetKey(y, z); err != nil {
 			return err
 		}
