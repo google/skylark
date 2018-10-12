@@ -102,6 +102,8 @@ type Value interface {
 	// Hash returns a function of x such that Equals(x, y) => Hash(x) == Hash(y).
 	// Hash may fail if the value's type is not hashable, or if the value
 	// contains a non-hashable value.
+	//
+	// TODO(adonovan): return a uintptr (a breaking change).
 	Hash() (uint32, error)
 }
 
@@ -622,7 +624,7 @@ func (d *Dict) Attr(name string) (Value, error) { return builtinAttr(d, name, di
 func (d *Dict) AttrNames() []string             { return builtinAttrNames(dictMethods) }
 
 // Set is an backwards-compatibility alias for SetKey.
-func (d *Dict) Set(k, v Value) error { return d.SetKey(k, v)}
+func (d *Dict) Set(k, v Value) error { return d.SetKey(k, v) }
 
 func (x *Dict) CompareSameType(op syntax.Token, y_ Value, depth int) (bool, error) {
 	y := y_.(*Dict)
