@@ -203,5 +203,5 @@ assert.eq(y, ((1, 2, 4), dict(x=3, y=5, z=6)))
 
 # This matches Python2, but not Skylark-in-Java:
 # *args and *kwargs are evaluated last.
-# See Google issue b/118052120 for pending spec change.
+# See github.com/bazelbuild/starlark#13 for pending spec change.
 assert.eq(r, [1, 2, 3, 5, 4, 6])
