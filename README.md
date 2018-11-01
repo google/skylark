@@ -3,6 +3,9 @@
 
 # Skylark in Go
 
+**Skylark is now called Starlark.  The project has moved to [go.starlark.net](go.starlark.net).**
+
+
 This is the home of the _Skylark in Go_ project.
 Skylark in Go is an interpreter for Skylark, implemented in Go.
 
