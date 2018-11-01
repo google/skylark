@@ -3,7 +3,7 @@
 
 # Skylark in Go
 
-**Skylark is now called Starlark.  The project has moved to [go.starlark.net](go.starlark.net).**
+**Skylark is now called Starlark.  The project has moved to [go.starlark.net](https://go.starlark.net).**
 
 
 This is the home of the _Skylark in Go_ project.
