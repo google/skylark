@@ -66,7 +66,7 @@ func LoadAssertModule() (skylark.StringDict, error) {
 			"struct":  skylark.NewBuiltin("struct", skylarkstruct.Make),
 			"_freeze": skylark.NewBuiltin("freeze", freeze),
 		}
-		filename := DataFile("skylark/skylarktest", "assert.sky")
+		filename := DataFile("skylarktest", "assert.sky")
 		thread := new(skylark.Thread)
 		assert, assertErr = skylark.ExecFile(thread, filename, nil, predeclared)
 	})
@@ -129,9 +129,11 @@ func freeze(thread *skylark.Thread, _ *skylark.Builtin, args skylark.Tuple, kwar
 }
 
 // DataFile returns the effective filename of the specified
-// test data resource.  The function abstracts differences between
-// 'go build', under which a test runs in its package directory,
-// and Blaze, under which a test runs in the root of the tree.
-var DataFile = func(pkgdir, filename string) string {
-	return filepath.Join(build.Default.GOPATH, "src/github.com/google", pkgdir, filename)
+// test data resource. The function abstracts differences between
+// - 'go build' (under which a test runs in its package directory),
+// - Blaze (under which a test runs in the root of the tree) and
+// - Bazel/rules_go (under which a test runs in a different package directory)
+// The default behavior works for 'go build'.
+var DataFile = func(subdir, filename string) string {
+	return filepath.Join(build.Default.GOPATH, "src/github.com/google/skylark", subdir, filename)
 }
