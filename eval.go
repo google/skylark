@@ -208,7 +208,7 @@ func (prog *Program) Load(i int) (string, syntax.Position) {
 	return id.Name, id.Pos
 }
 
-// WriteTo writes the compiled module to the specified output stream.
+// Write writes the compiled module to the specified output stream.
 func (prog *Program) Write(out io.Writer) error { return prog.compiled.Write(out) }
 
 // ExecFile parses, resolves, and executes a Skylark file in the
